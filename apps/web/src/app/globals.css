@@ -1,0 +1,123 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
+:root {
+  --bg-primary: #0f1117;
+  --bg-card: #1a1d27;
+  --bg-surface: #252836;
+  --accent: #6c63ff;
+  --accent-hover: #5a52e0;
+  --text-primary: #f0f0f0;
+  --text-secondary: #9ca3af;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --border: #2d3148;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-bg-primary text-text-primary;
+  }
+}
+
+@layer utilities {
+  .card {
+    @apply bg-bg-card rounded-md border border-border shadow-sm;
+  }
+
+  .btn {
+    @apply px-4 py-2 rounded-md font-medium transition-all duration-200 ease-in-out cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-primary {
+    @apply bg-accent hover:bg-accent-hover text-white;
+  }
+
+  .btn-secondary {
+    @apply bg-bg-surface hover:bg-bg-card text-text-primary;
+  }
+
+  .btn-danger {
+    @apply bg-danger hover:bg-red-600 text-white;
+  }
+
+  .btn-success {
+    @apply bg-success hover:bg-green-600 text-white;
+  }
+
+  .badge {
+    @apply px-2 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1;
+  }
+
+  .badge-draft {
+    @apply bg-gray-500/20 text-gray-400;
+  }
+
+  .badge-processing {
+    @apply bg-warning/20 text-warning animate-pulse;
+  }
+
+  .badge-posted {
+    @apply bg-success/20 text-success;
+  }
+
+  .badge-failed {
+    @apply bg-danger/20 text-danger;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* Focus styles */
+*:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Smooth transitions */
+* {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}

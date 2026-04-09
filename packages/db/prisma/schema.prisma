@@ -1,0 +1,52 @@
+// Prisma schema for FB Marketplace Auto Listing Bot
+// Location: packages/db/prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id          String    @id @default(uuid())
+  title       String
+  price       Int
+  imageUrl    String?
+  imageLocal  String?
+  description String?   @db.Text
+  hash        String    @unique
+  status      Status    @default(DRAFT)
+  postedAt    DateTime?
+  sourceUrl   String?   @db.Text
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  jobs        Job[]
+
+  @@index([status])
+  @@index([createdAt(sort: Desc)])
+  @@index([hash])
+}
+
+model Job {
+  id        String   @id @default(uuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  status    String
+  log       String?  @db.Text
+  attempt   Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([productId])
+  @@index([createdAt(sort: Desc)])
+}
+
+enum Status {
+  DRAFT
+  PROCESSING
+  POSTED
+  FAILED
+}

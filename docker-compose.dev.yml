@@ -1,0 +1,45 @@
+# Docker Compose for Development (no build, uses local code)
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: bot-postgres-dev
+    environment:
+      POSTGRES_USER: botuser
+      POSTGRES_PASSWORD: botpassword
+      POSTGRES_DB: botdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata-dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U botuser -d botdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - bot-network-dev
+
+  redis:
+    image: redis:7-alpine
+    container_name: bot-redis-dev
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata-dev:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - bot-network-dev
+
+volumes:
+  pgdata-dev:
+  redisdata-dev:
+
+networks:
+  bot-network-dev:
+    driver: bridge

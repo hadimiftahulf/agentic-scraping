@@ -1,0 +1,39 @@
+{
+  "name": "worker",
+  "version": "0.1.0",
+  "main": "./dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/worker.ts",
+    "dev:with-health": "concurrently \"npm run dev\" \"npm run dev:health\"",
+    "dev:health": "tsx watch src/worker-server.ts",
+    "build": "tsc",
+    "start": "concurrently \"node dist/worker.js\" \"node dist/worker-server.js\"",
+    "start:worker": "node dist/worker.js",
+    "start:health": "node dist/worker-server.js",
+    "test": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@bot/db": "*",
+    "@bot/config": "*",
+    "@bot/utils": "*",
+    "@types/node": "^20.11.0",
+    "bullmq": "^5.1.8",
+    "express": "^4.18.2",
+    "ioredis": "^5.3.2",
+    "playwright": "^1.40.1",
+    "pino": "^8.19.0",
+    "pino-pretty": "^10.3.1",
+    "dotenv": "^16.4.1",
+    "zod": "^3.22.4",
+    "concurrently": "^8.2.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3",
+    "vitest": "^1.2.1",
+    "@vitest/coverage-v8": "^1.2.1",
+    "ts-node": "^10.9.2"
+  }
+}

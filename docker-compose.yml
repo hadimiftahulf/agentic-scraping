@@ -1,0 +1,114 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: fb-bot-postgres
+    environment:
+      POSTGRES_USER: botuser
+      POSTGRES_PASSWORD: botpassword
+      POSTGRES_DB: botdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U botuser -d botdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: fb-bot-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: fb-bot-api
+    ports:
+      - "3001:3001"
+    environment:
+      - DATABASE_URL=postgresql://botuser:botpassword@postgres:5432/botdb
+      - REDIS_URL=redis://redis:6379
+      - PORT=3001
+      - NODE_ENV=production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  worker:
+    build:
+      context: ./apps/worker
+      dockerfile: Dockerfile
+    container_name: fb-bot-worker
+    environment:
+      - DATABASE_URL=postgresql://botuser:botpassword@postgres:5432/botdb
+      - REDIS_URL=redis://redis:6379
+      - SESSION_ENCRYPT_KEY=change-this-to-a-32-byte-encryption-key
+      - FB_SESSION_PATH=/app/session/fb_session.json
+      - NODE_ENV=production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: fb-bot-web
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:3001
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  scraper:
+    build:
+      context: ./apps/scraper
+      dockerfile: Dockerfile
+    container_name: fb-bot-scraper
+    environment:
+      - DATABASE_URL=postgresql://botuser:botpassword@postgres:5432/botdb
+      - TARGET_URL=https://www.jakartanotebook.com/category/laptop
+      - SCRAPER_INTERVAL_MINUTES=20
+      - PRICE_MARKUP_PERCENT=25
+      - MIN_PRICE=0
+      - MAX_PRICE=50000000
+      - BLACKLIST_KEYWORDS=bundle,rusak,damaged
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
