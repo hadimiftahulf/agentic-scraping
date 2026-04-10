@@ -196,3 +196,35 @@ Dokumen ini berisi gabungan seluruh tugas implementasi dari modul-modul sistem. 
 | NOT-FE-03 | Component   | Todo   | Create `NotificationBell` with badge count.            |
 | NOT-FE-04 | Component   | Todo   | Create `NotificationList` dropdown/page.               |
 | NOT-FE-05 | Integration | Todo   | Connect Bell & List to Realtime Store.                 |
+---
+
+## Modul: Scraper (`scraper`)
+
+**Deskripsi:** Modul Scraper bertanggung jawab untuk ekstraksi data produk dari marketplace eksternal.
+
+**Dokumentasi:**
+- [Overview](../documents/application/modules/scraper/overview.md)
+- [Technical Blueprint](../documents/application/modules/scraper/technical-blueprint.md)
+- [API Spec](../documents/application/api/scraper/api-scraper-jobs.md)
+- [Testing](../documents/application/testing/scraper/test-scraper.md)
+
+### Backend (TS Replacement)
+
+| ID Tugas  | Component  | Status | Deskripsi                                                     |
+| :-------- | :--------- | :----- | :------------------------------------------------------------ |
+| SCR-BE-01 | Core       | Todo   | Setup `apps/scraper` TS project with Playwright & DB shared.  |
+| SCR-BE-02 | Provider   | Todo   | Implement `BaseProvider` and `JakartaNotebookProvider`.       |
+| SCR-BE-03 | Provider   | Todo   | Implement `TokopediaProvider` with stealth logic.            |
+| SCR-BE-04 | Provider   | Todo   | Implement `ShopeeProvider` with stealth logic.               |
+| SCR-BE-05 | Service    | Todo   | Implement `ScraperOrchestrator` (Deduplication & Image Loc).  |
+| SCR-BE-06 | Controller | Todo   | Implement `ScraperJobController` in `apps/api` (JSON:API).    |
+| SCR-BE-07 | Worker     | Todo   | Integrate Scraper with BullMQ for background processing.      |
+| SCR-BE-08 | Tests      | Todo   | Implement Vitest and Playwright integration tests.           |
+
+### Frontend
+
+| ID Tugas  | Component | Status | Deskripsi                                        |
+| :-------- | :-------- | :----- | :----------------------------------------------- |
+| SCR-FE-01 | Modal     | Todo   | Create `ManualScrapeModal` (Input URL & Source). |
+| SCR-FE-02 | Page      | Todo   | Create `ScraperJobHistory` page.                |
+| SCR-FE-03 | Service   | Todo   | Create `ScraperApiService` wrapper.              |
