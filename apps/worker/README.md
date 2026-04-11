@@ -34,6 +34,24 @@ npm run build
 
 See `.env.example` for required environment variables.
 
+## Session Setup
+
+Before running the worker, you need to set up a Facebook session:
+
+```bash
+# Run session setup script (opens browser for manual login)
+npm run setup:session
+```
+
+This will:
+
+1. Open a browser window (headed mode)
+2. Navigate to Facebook
+3. Prompt you to log in manually
+4. Save the encrypted session to the configured path
+
+If your session expires, re-run the setup script to refresh it.
+
 ## Architecture
 
 - `worker.ts` - Main entry point

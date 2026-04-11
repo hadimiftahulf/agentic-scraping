@@ -11,7 +11,8 @@
     "start:worker": "node dist/worker.js",
     "start:health": "node dist/worker-server.js",
     "test": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "setup:session": "tsx scripts/setup-session.ts"
   },
   "dependencies": {
     "@bot/db": "*",
