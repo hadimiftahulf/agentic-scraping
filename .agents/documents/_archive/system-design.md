@@ -3,26 +3,27 @@
 ## 1. 🔷 High-Level Architecture
 
 ```
-[ Scraper (Python) ]
+[ Scraper (Node/TS) ]
         ↓
-     [ DB ]
+      [ DB ]
         ↓
-[ Backend API (Node) ] → [ Queue (Redis + BullMQ) ]
+[ Backend API (Node/TS) ] → [ Queue (Redis + BullMQ) ]
         ↓                         ↓
    [ Frontend ]           [ Worker (Posting Bot) ]
-                                   ↓
-                         :contentReference[oaicite:0]{index=0}
+                                    ↓
+                          [ FB Marketplace]
 ```
 
 ---
 
 ## 2. 🧩 Service Breakdown
 
-### A. Scraper Service (Python)
+### A. Scraper Service (Node.js/TypeScript)
 
-- Playwright
+- Playwright + TypeScript
 - cron job
-- output → DB
+- Primary source: Jakartanotebook only (V1)
+- Output → DB
 
 ---
 
@@ -56,10 +57,10 @@
 project-root/
 │
 ├── apps/
-│   ├── scraper/        # Python
-│   ├── api/            # Node.js (Express/Fastify)
-│   ├── worker/         # Node.js (BullMQ)
-│   └── web/            # Next.js
+│   ├── scraper/        # Node.js/TypeScript (V1: Jakartanotebook only)
+│   ├── api/            # Node.js/Fastify/TypeScript
+│   ├── worker/         # Node.js/BullMQ/TypeScript
+│   └── web/            # Next.js 14
 │
 ├── packages/
 │   ├── db/             # Prisma schema
@@ -70,6 +71,15 @@ project-root/
 │   ├── docker/
 │   └── redis/
 ```
+
+## 3.1. Product Sources
+
+| Source          | Status (V1) | Notes                      |
+| --------------- | ----------- | -------------------------- |
+| Jakartanotebook | ✅ Primary  | Easy, no auth required     |
+| Shopee          | 🔜 Future   | Requires session + proxy   |
+| Tokopedia       | 🔜 Future   | Requires Cloudflare bypass |
+| Lazada          | 🔜 Future   | Requires CAPTCHA solving   |
 
 ---
 

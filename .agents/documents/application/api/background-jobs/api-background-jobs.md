@@ -16,6 +16,7 @@
 ## 2. Endpoints
 
 ### 2.1 Get Job Status
+
 - **URL:** `GET /:queueName/:jobId`
 - **Description:** Mengambil status job tertentu (Completed/Failed/Active).
 - **Access Control:** Authenticated (Admin/System).
@@ -23,6 +24,7 @@
 #### Request
 
 **Headers:**
+
 ```http
 Accept: application/vnd.api+json
 Authorization: Bearer <token>
@@ -31,18 +33,20 @@ Authorization: Bearer <token>
 #### Response
 
 **Success (200 OK):**
+
 ```json
 {
+  "jsonapi": { "version": "1.1" },
   "data": {
     "type": "job_status",
     "id": "123",
     "attributes": {
-        "status": "completed",
-        "progress": 100,
-        "result": { "exported_file": "https://..." }
+      "status": "completed",
+      "progress": 100,
+      "result": { "exported_file": "https://..." }
     },
     "links": {
-        "self": "/api/v1/jobs/export/123"
+      "self": "/api/v1/jobs/export/123"
     }
   }
 }
@@ -51,6 +55,7 @@ Authorization: Bearer <token>
 ---
 
 ### 2.2 Retry Failed Job
+
 - **URL:** `POST /:queueName/:jobId/retry`
 - **Description:** Menjalankan ulang job yang gagal.
 - **Access Control:** Authenticated (Admin)
@@ -58,6 +63,7 @@ Authorization: Bearer <token>
 #### Request
 
 **Headers:**
+
 ```http
 Content-Type: application/vnd.api+json
 Accept: application/vnd.api+json
@@ -67,6 +73,7 @@ Authorization: Bearer <token>
 #### Response
 
 **Success (200 OK):**
+
 ```json
 {
   "meta": {
@@ -79,6 +86,7 @@ Authorization: Bearer <token>
 ---
 
 ### 2.3 Create Export Job (Trigger)
+
 - **URL:** `POST /jobs/export`
 - **Description:** Memicu job export data (US-JOB-03).
 - **Access Control:** Authenticated
@@ -86,6 +94,7 @@ Authorization: Bearer <token>
 #### Request
 
 **Body:**
+
 ```json
 {
   "data": {
@@ -101,6 +110,7 @@ Authorization: Bearer <token>
 #### Response
 
 **Success (202 Accepted):**
+
 ```json
 {
   "data": {
