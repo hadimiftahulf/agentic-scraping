@@ -224,3 +224,55 @@ model TaxonomyAttachment {
   @@index([termId])
   @@index([entityId, entityType])
 }
+
+model Media {
+  /// Unique identifier for the media record
+  id           String            @id @default(uuid())
+  /// Generated filename in the storage
+  filename     String
+  /// Original filename of the uploaded file
+  originalName String
+  /// MIME type of the file (e.g., image/jpeg)
+  mimeType     String
+  /// File size in bytes
+  size         Int
+  /// Public URL to access the file
+  url          String
+  /// Optional folder or category for the file
+  folder       String?
+  /// Attachments of this media to entities
+  attachments  MediaAttachment[]
+  /// Timestamp when the record was created
+  createdAt    DateTime          @default(now())
+  /// Timestamp when the record was last updated
+  updatedAt    DateTime          @updatedAt
+  /// Timestamp for soft delete
+  deletedAt    DateTime?
+
+  @@index([folder])
+}
+
+model MediaAttachment {
+  /// Unique identifier for the attachment
+  id             String    @id @default(uuid())
+  /// ID of the media being attached
+  mediaId        String
+  /// Relationship to the Media model
+  media          Media     @relation(fields: [mediaId], references: [id])
+  /// Type of entity the media is attached to (e.g., 'product', 'user')
+  entityType     String
+  /// ID of the entity the media is attached to
+  entityId       String
+  /// Name of the collection (e.g., 'gallery', 'avatar', 'processed')
+  collectionName String?   @default("default")
+  /// Timestamp when the record was created
+  createdAt      DateTime  @default(now())
+  /// Timestamp when the record was last updated
+  updatedAt      DateTime  @updatedAt
+  /// Timestamp for soft delete
+  deletedAt      DateTime?
+
+  @@unique([entityType, entityId, mediaId, collectionName])
+  @@index([mediaId])
+  @@index([entityId, entityType])
+}

@@ -178,3 +178,56 @@ export function transformTerms(terms: any[], taxonomyCode: string): JsonApiRespo
     },
   };
 }
+
+/**
+ * Transforms a Prisma Media model to a JSON:API resource
+ */
+export function transformMedia(media: any): JsonApiResource {
+  return {
+    type: 'media',
+    id: media.id,
+    attributes: {
+      filename: media.filename,
+      original_name: media.originalName,
+      mime_type: media.mimeType,
+      size: media.size,
+      url: media.url,
+      folder: media.folder,
+    },
+    links: {
+      self: `/api/v1/media/${media.id}`,
+    },
+  };
+}
+
+/**
+ * Transforms a list of Prisma Media models to a JSON:API response
+ */
+export function transformMediaList(mediaList: any[]): JsonApiResponse {
+  return {
+    data: mediaList.map(transformMedia),
+    links: {
+      self: '/api/v1/media',
+    },
+  };
+}
+
+/**
+ * Transforms a Prisma MediaAttachment model to a JSON:API resource
+ */
+export function transformMediaAttachment(attachment: any): JsonApiResource {
+  return {
+    type: 'media_attachment',
+    id: attachment.id,
+    attributes: {
+      entity_type: attachment.entityType,
+      entity_id: attachment.entityId,
+      collection_name: attachment.collectionName,
+    },
+    relationships: {
+      media: {
+        data: { type: 'media', id: attachment.mediaId }
+      }
+    },
+  };
+}

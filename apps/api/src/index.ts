@@ -8,6 +8,8 @@ import authRoute from "./routes/auth.route";
 import usersRoute from "./routes/users.route";
 import rolesRoute from "./routes/roles.route";
 import taxonomyRoute from "./routes/taxonomy.route";
+import mediaRoute from "./routes/media.route";
+import multipart from "@fastify/multipart";
 import configRoute, { runtimeConfig } from "./routes/config.route";
 import healthRoute from "./routes/health.routes";
 import { QueueService } from "./services/queue.service";
@@ -23,6 +25,7 @@ const start = async () => {
     await app.register(prismaPlugin);
     await app.register(redisPlugin);
     await app.register(jwtPlugin);
+    await app.register(multipart);
 
     // Initialize queue service
     const queueService = new QueueService();
@@ -36,6 +39,7 @@ const start = async () => {
     await app.register(usersRoute, { prefix: "/api/v1" });
     await app.register(rolesRoute, { prefix: "/api/v1" });
     await app.register(taxonomyRoute, { prefix: "/api/v1" });
+    await app.register(mediaRoute, { prefix: "/api/v1" });
     await app.register(productsRoute);
     await app.register(jobsRoute);
     await app.register(configRoute);
