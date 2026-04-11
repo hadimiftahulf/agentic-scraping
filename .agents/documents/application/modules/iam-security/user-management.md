@@ -164,8 +164,8 @@ erDiagram
 
 | Task ID   | Component  | Status | Description                                                     |
 | :-------- | :--------- | :----- | :-------------------------------------------------------------- |
-| IAM-BE-01 | Migration  | Todo   | Create `users` table with standard timestamps & soft deletes.   |
-| IAM-BE-02 | Seeder     | Todo   | Create `UserSeeder` for Admin & Public role.                    |
+| IAM-BE-01 | Migration  | Done   | Create `users` table with standard timestamps & soft deletes.   |
+| IAM-BE-02 | Seeder     | Done   | Create `UserSeeder` for Admin & Public role.                    |
 | IAM-BE-03 | Model      | Todo   | Setup `User` model arguments (fillable, cast, relations).       |
 | IAM-BE-04 | Repository | Todo   | Implement `UserRepository` (Interface & Implementation).        |
 | IAM-BE-05 | Service    | Todo   | Implement `UserService` (Business Logic for Suspend/Activate).  |
