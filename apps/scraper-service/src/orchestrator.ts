@@ -1,11 +1,13 @@
 import { PrismaClient } from '@bot/db';
 import pino from 'pino';
 import { ScraperProvider } from './interfaces/scraper-provider.interface';
+import { ImageProcessor } from './processors/image.processor';
 import { generateHash, applyMarkup, normalizeTitle, sleep, randomDelay } from '@bot/utils';
 import { config } from '@bot/config';
 
 export class ScraperOrchestrator {
   private logger = pino({ name: 'ScraperOrchestrator' });
+  private imageProcessor = new ImageProcessor();
 
   constructor(
     private db: PrismaClient,
@@ -49,8 +51,8 @@ export class ScraperOrchestrator {
           const markedUpPrice = applyMarkup(detail.price, config.priceMarkupPercent);
           const productHash = generateHash(normalizedTitle, detail.price);
 
-          // 4. Upsert to DB
-          await this.db.product.upsert({
+          // 4. Upsert to DB (First pass to get ID if needed for image path)
+          const product = await this.db.product.upsert({
             where: { hash: productHash },
             update: {
               title: normalizedTitle,
@@ -71,6 +73,21 @@ export class ScraperOrchestrator {
               sourceUrl: detail.sourceUrl,
             },
           });
+
+          // 5. Process Image if available
+          if (detail.imageUrls.length > 0) {
+            const processedImagePath = await this.imageProcessor.processProductImage(
+              product.id,
+              detail.imageUrls[0]
+            );
+
+            if (processedImagePath) {
+              await this.db.product.update({
+                where: { id: product.id },
+                data: { imageLocal: processedImagePath },
+              });
+            }
+          }
 
           successCount++;
           
