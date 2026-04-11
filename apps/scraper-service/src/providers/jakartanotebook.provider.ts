@@ -11,15 +11,25 @@ export class JakartaNotebookProvider extends BasePlaywrightProvider implements S
     try {
       this.logger.info({ url }, 'Scraping listing page');
       await page.goto(url, { waitUntil: 'networkidle' });
-      await page.waitForSelector('article, .product-item, .card', { timeout: 10000 });
+      await page.waitForSelector('article, .product-item, .card, a[class*="ProductCardWrapper"]', { timeout: 10000 });
+
+      // Scroll to trigger lazy loading / pagination
+      let previousHeight = 0;
+      for (let i = 0; i < 5; i++) {
+        previousHeight = await page.evaluate('document.body.scrollHeight') as number;
+        await page.evaluate('window.scrollTo(0, document.body.scrollHeight)');
+        await new Promise(r => setTimeout(r, 1000));
+        const newHeight = await page.evaluate('document.body.scrollHeight') as number;
+        if (newHeight === previousHeight) break;
+      }
 
       const listings = await page.evaluate(() => {
-        const items = document.querySelectorAll('article, .product-item, .card');
+        const items = document.querySelectorAll('article, .product-item, .card, a[class*="ProductCardWrapper"]');
         const results: { title: string; productUrl: string }[] = [];
 
         items.forEach((item: Element) => {
-          const titleEl = item.querySelector('h3, .title, .product-title');
-          const linkEl = item.querySelector('a[href]');
+          const titleEl = item.querySelector('h3, .title, .product-title, span[class*="ProductCardWrapper"]');
+          const linkEl = item.tagName.toLowerCase() === 'a' ? item : item.querySelector('a[href]');
 
           if (titleEl && linkEl) {
             results.push({
@@ -53,9 +63,9 @@ export class JakartaNotebookProvider extends BasePlaywrightProvider implements S
 
       const detail = await page.evaluate((sourceUrl: string) => {
         const titleEl = document.querySelector('h1, .product-title, .title');
-        const priceEl = document.querySelector('.price, [class*="price"], .price-display');
-        const descEl = document.querySelector('.description, [class*="desc"], #product-desc');
-        const stockEl = document.querySelector('[class*="stock"], .availability, .stock-status');
+        const priceEl = document.querySelector('.price, [class*="price"], .price-display, [class*="StyledPrice"]');
+        const descEl = document.querySelector('.description, [class*="desc"], #product-desc, [class*="StyledOverview"]');
+        const stockEl = document.querySelector('[class*="stock"], .availability, .stock-status, [class*="StyledStockInfo"]');
         const imgElements = document.querySelectorAll('.product-gallery img, .product-images img, .main-image img');
 
         const priceText = priceEl?.textContent?.replace(/[^0-9]/g, '') || '0';

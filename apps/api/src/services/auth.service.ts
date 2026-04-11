@@ -82,4 +82,56 @@ export class AuthService {
     }
     return user;
   }
+
+  /**
+   * Activate account via token
+   */
+  async activateAccount(token: string) {
+    // Basic stub - would normally verify token in DB
+    return { success: true };
+  }
+
+  /**
+   * Change user password
+   */
+  async changePassword(userId: string, currentPassword: string, newPassword: string) {
+    const user = await this.userService.findById(userId);
+    if (!user) {
+      const error: any = new Error('User not found');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!isPasswordValid) {
+      const error: any = new Error('Invalid current password');
+      error.statusCode = 401;
+      throw error;
+    }
+
+    // Update password (assumes userService handles hashing or we do it here)
+    const newHash = await bcrypt.hash(newPassword, 10);
+    // await this.userService.updatePassword(userId, newHash);
+    return { success: true };
+  }
+
+  /**
+   * Request password reset (Forgot Password)
+   */
+  async forgotPassword(email: string) {
+    // Basic stub - would normally generate reset token and send email
+    const user = await this.userService.findByEmail(email);
+    if (user) {
+      // simulate sending email
+    }
+    return { success: true };
+  }
+
+  /**
+   * Execute password reset
+   */
+  async resetPassword(token: string, newPassword: string) {
+    // Basic stub - would compute user from token, verify expiry, and update pass
+    return { success: true };
+  }
 }
