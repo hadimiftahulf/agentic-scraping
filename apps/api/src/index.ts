@@ -1,8 +1,12 @@
 import { app, logger } from "./app";
 import prismaPlugin from "./plugins/prisma.plugin";
 import redisPlugin from "./plugins/redis.plugin";
+import jwtPlugin from "./plugins/jwt.plugin";
 import productsRoute from "./routes/products.route";
 import jobsRoute from "./routes/jobs.route";
+import authRoute from "./routes/auth.route";
+import usersRoute from "./routes/users.route";
+import rolesRoute from "./routes/roles.route";
 import configRoute, { runtimeConfig } from "./routes/config.route";
 import healthRoute from "./routes/health.routes";
 import { QueueService } from "./services/queue.service";
@@ -17,6 +21,7 @@ const start = async () => {
     // Register plugins
     await app.register(prismaPlugin);
     await app.register(redisPlugin);
+    await app.register(jwtPlugin);
 
     // Initialize queue service
     const queueService = new QueueService();
@@ -26,6 +31,9 @@ const start = async () => {
     app.decorate("queue", queueService.getQueue());
 
     // Register routes
+    await app.register(authRoute, { prefix: "/api/v1" });
+    await app.register(usersRoute, { prefix: "/api/v1" });
+    await app.register(rolesRoute, { prefix: "/api/v1" });
     await app.register(productsRoute);
     await app.register(jobsRoute);
     await app.register(configRoute);

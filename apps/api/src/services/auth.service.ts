@@ -1,0 +1,85 @@
+import { UserService } from './user.service';
+import { LoginRequest, RegisterRequest } from '../schemas/auth.schema';
+import * as bcrypt from 'bcryptjs';
+import { FastifyInstance } from 'fastify';
+
+export class AuthService {
+  private userService: UserService;
+
+  constructor(private fastify: FastifyInstance) {
+    this.userService = new UserService(fastify.db);
+  }
+
+  /**
+   * Register a new user
+   */
+  async register(data: RegisterRequest['data']['attributes']) {
+    // Check if user already exists
+    const existingUser = await this.userService.findByEmail(data.email);
+    if (existingUser) {
+      const error: any = new Error('User already exists');
+      error.statusCode = 409;
+      throw error;
+    }
+
+    return this.userService.create(data);
+  }
+
+  /**
+   * Login user and generate tokens
+   */
+  async login(data: LoginRequest['data']['attributes']) {
+    const user = await this.userService.findByEmail(data.email);
+    if (!user) {
+      const error: any = new Error('Invalid email or password');
+      error.statusCode = 401;
+      throw error;
+    }
+
+    if (user.status === 'SUSPENDED') {
+      const error: any = new Error('Account suspended');
+      error.statusCode = 403;
+      throw error;
+    }
+
+    const isPasswordValid = await bcrypt.compare(data.password, user.passwordHash);
+    if (!isPasswordValid) {
+      const error: any = new Error('Invalid email or password');
+      error.statusCode = 401;
+      throw error;
+    }
+
+    // Generate tokens
+    const accessToken = this.fastify.jwt.sign({
+      sub: user.id,
+      email: user.email,
+      role: user.role.name,
+    });
+
+    // For now, we use the same token as refresh token or generate a different one
+    const refreshToken = this.fastify.jwt.sign({
+      sub: user.id,
+      type: 'refresh',
+    }, { expiresIn: '7d' });
+
+    return {
+      accessToken,
+      refreshToken,
+      expiresIn: 3600,
+      userId: user.id,
+    };
+  }
+
+  /**
+   * Get current user profile
+   */
+  async getProfile(userId: string) {
+    const user = await this.userService.findById(userId);
+    if (!user) {
+      const error: any = new Error('User not found');
+      error.statusCode = 404;
+      throw error;
+    }
+    return user;
+  }
+}
