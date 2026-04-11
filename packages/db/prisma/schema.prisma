@@ -10,21 +10,114 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Product {
-  id          String    @id @default(uuid())
-  title       String
-  price       Int
-  imageUrl    String?
-  imageLocal  String?
-  description String?   @db.Text
-  hash        String    @unique
-  status      Status    @default(DRAFT)
-  postedAt    DateTime?
-  sourceUrl   String?   @db.Text
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+/// Product status in the system workflow
+enum Status {
+  DRAFT
+  PROCESSING
+  POSTED
+  FAILED
+}
 
-  jobs        Job[]
+/// User account status
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  PENDING_ACTIVATION
+}
+
+model User {
+  /// Unique identifier for the user
+  id           String     @id @default(uuid())
+  /// User's email address for authentication
+  email        String     @unique
+  /// User's full name
+  fullName     String
+  /// Hashed password for authentication
+  passwordHash String
+  /// Current status of the user account
+  status       UserStatus @default(PENDING_ACTIVATION)
+  /// ID of the role assigned to the user
+  roleId       String
+  /// Relationship to the Role model
+  role         Role       @relation(fields: [roleId], references: [id])
+  /// Timestamp when the user was created
+  createdAt    DateTime   @default(now())
+  /// Timestamp when the user was last updated
+  updatedAt    DateTime   @updatedAt
+  /// Timestamp for soft delete
+  deletedAt    DateTime?
+
+  @@index([roleId])
+  @@index([status])
+  @@index([email])
+}
+
+model Role {
+  /// Unique identifier for the role
+  id          String       @id @default(uuid())
+  /// Name of the role (e.g., ADMIN, EDITOR)
+  name        String       @unique
+  /// Brief description of the role's purpose
+  description String?
+  /// Users assigned to this role
+  users       User[]
+  /// Permissions granted to this role
+  permissions Permission[]
+  /// Timestamp when the role was created
+  createdAt   DateTime     @default(now())
+  /// Timestamp when the role was last updated
+  updatedAt   DateTime     @updatedAt
+  /// Timestamp for soft delete
+  deletedAt   DateTime?
+}
+
+model Permission {
+  /// Unique identifier for the permission
+  id          String    @id @default(uuid())
+  /// Unique code for the permission (e.g., PRODUCT:CREATE)
+  code        String    @unique
+  /// Brief description of what this permission allows
+  description String?
+  /// Roles that have this permission
+  roles       Role[]
+  /// Timestamp when the permission was created
+  createdAt   DateTime  @default(now())
+  /// Timestamp when the permission was last updated
+  updatedAt   DateTime  @updatedAt
+  /// Timestamp for soft delete
+  deletedAt   DateTime?
+}
+
+model Product {
+  /// Unique identifier for the product
+  id          String    @id @default(uuid())
+  /// Title of the product
+  title       String
+  /// Price of the product after markup
+  price       Int
+  /// URL of the original source image
+  imageUrl    String?
+  /// Local path to the processed image
+  imageLocal  String?
+  /// Full product description
+  description String?   @db.Text
+  /// Unique fingerprint for deduplication
+  hash        String    @unique
+  /// Current workflow status
+  status      Status    @default(DRAFT)
+  /// Timestamp when the product was successfully posted
+  postedAt    DateTime?
+  /// Original source URL of the product
+  sourceUrl   String?   @db.Text
+  /// Timestamp when the record was created
+  createdAt   DateTime  @default(now())
+  /// Timestamp when the record was last updated
+  updatedAt   DateTime  @updatedAt
+  /// Timestamp for soft delete
+  deletedAt   DateTime?
+
+  /// Associated posting jobs for this product
+  jobs Job[]
 
   @@index([status])
   @@index([createdAt(sort: Desc)])
@@ -32,21 +125,25 @@ model Product {
 }
 
 model Job {
-  id        String   @id @default(uuid())
+  /// Unique identifier for the job
+  id        String    @id @default(uuid())
+  /// ID of the product this job is processing
   productId String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  /// Relationship to the Product model
+  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  /// Current status of the job (e.g., pending, completed, failed)
   status    String
-  log       String?  @db.Text
-  attempt   Int      @default(0)
-  createdAt DateTime @default(now())
+  /// Execution details or error logs
+  log       String?   @db.Text
+  /// Number of times this job has been attempted
+  attempt   Int       @default(0)
+  /// Timestamp when the job was created
+  createdAt DateTime  @default(now())
+  /// Timestamp when the job was last updated
+  updatedAt DateTime  @updatedAt
+  /// Timestamp for soft delete
+  deletedAt DateTime?
 
   @@index([productId])
   @@index([createdAt(sort: Desc)])
-}
-
-enum Status {
-  DRAFT
-  PROCESSING
-  POSTED
-  FAILED
 }

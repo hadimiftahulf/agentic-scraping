@@ -60,8 +60,8 @@ export class ProductService {
   static async updateJobRecord(
     jobId: string,
     status: string,
-    log?: string,
-    db: any
+    db: any,
+    log?: string
   ): Promise<void> {
     await db.job.updateMany({
       where: { id: jobId },

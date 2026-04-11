@@ -12,6 +12,7 @@ export const ProductSchema = z.object({
   sourceUrl: z.string().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
+  deletedAt: z.date().nullable().optional(),
 });
 
 export const CreateProductSchema = z.object({
@@ -22,7 +23,7 @@ export const CreateProductSchema = z.object({
   sourceUrl: z.string().url().optional(),
 });
 
-export const UpdateProductSchema = CreateProduct.partial();
+export const UpdateProductSchema = CreateProductSchema.partial();
 
 export const GetProductsQuerySchema = z.object({
   status: z.enum(['DRAFT', 'PROCESSING', 'POSTED', 'FAILED']).optional(),
