@@ -19,6 +19,7 @@ Sama seperti modul dan API, folder dikelompokkan berdasarkan domain:
 - **iam-security/**: Test cases untuk Login, Register, User CRUD.
 - **configuration/**: Test cases untuk Dynamic Config, Feature Flags.
 - **notification/**: Test cases untuk Queue, Email Sending, Template rendering.
+- **scraper/**: Test cases for DOM parsing, anti-bot, and scrape flows.
 
 ## Template
 

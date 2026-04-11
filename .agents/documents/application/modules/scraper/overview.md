@@ -57,3 +57,12 @@ graph LR
 - **Sharp:** High-performance image processing.
 - **Prisma:** Shared database client.
 - **APScheduler:** Cycle management.
+ 
+ ---
+ 
+ ## Related Documents
+ - **Features**: [Jakartanotebook Sourcing](./jakartanotebook-sourcing.md), [Multi-Marketplace Sourcing](./multi-marketplace-sourcing.md)
+ - **API Specification**: [Scraper API](../../api/scraper/api-scraper.md)
+ - **Testing Plan**: [Scraper Testing](../../testing/scraper/test-scraper.md)
+ 
+ [Back to Application Overview](../../README.md)

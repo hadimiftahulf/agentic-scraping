@@ -36,6 +36,9 @@ Focus: End-to-end integration with Database and Storage.
 - **T-E2E-02: Image Localization**
     - Trigger a scrape.
     - Assert that images are downloaded to `images/raw/` and `imageLocal` field is populated in the DB.
+- **T-E2E-03: Invalid Job Request (Negative)**
+    - Call `POST /api/scraper/jobs` with an unsupported URL (e.g., `google.com`).
+    - Assert that the API returns `422 Unprocessable Entity` with `invalid_url` code.
 
 ## 4. Performance & Reliability
 
@@ -45,3 +48,11 @@ Focus: End-to-end integration with Database and Storage.
 - **T-PER-01: Concurrent Load**
     - Run 5 concurrent scrapes.
     - Assert that memory usage remains stable (< 4GB total).
+
+---
+
+## Related Documents
+- **Module Overview**: [Scraper Overview](../../modules/scraper/overview.md)
+- **API Specification**: [Scraper API](../../api/scraper/api-scraper.md)
+
+[Back to Testing Index](../../README.md)

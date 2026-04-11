@@ -28,6 +28,7 @@ Berikut adalah daftar modul yang tersedia saat ini:
 | **Background Jobs**  | `background-jobs`  | Pemrosesan antrian asinkron dan cron jobs (Redis/Bull).      |
 | **Taxonomy**         | `taxonomy`         | Klasifikasi polimorfik (Kategori, Tag, Label) yang terpusat. |
 | **Media Management** | `media-management` | Layanan upload dan penyimpanan file terpusat (S3/Local).     |
+| **Scraper Service**  | `scraper`          | Multi-marketplace product sourcing logic. |
 
 ---
 

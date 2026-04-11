@@ -11,7 +11,8 @@ Pengelompokan folder mengikuti struktur modul aplikasi:
 
 - **iam-security/**: Endpoint untuk Auth, User Management, RBAC.
 - **configuration/**: Endpoint untuk Public Config, Admin Config.
-- **notification/**: Endpoint untuk Send Notif, List Notif.
+- **notification/**: Endpoint for Send Notif, List Notif.
+- **scraper/**: Endpoint for Manual Scrape Trigger and Scraper Jobs.
 
 ## Format Standar
 
