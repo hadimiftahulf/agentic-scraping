@@ -147,3 +147,80 @@ model Job {
   @@index([productId])
   @@index([createdAt(sort: Desc)])
 }
+
+model Taxonomy {
+  /// Unique identifier for the taxonomy
+  id             String   @id @default(uuid())
+  /// Unique code for the taxonomy namespace (e.g., product_category)
+  code           String   @unique
+  /// Human-readable name of the taxonomy
+  name           String
+  /// Whether this taxonomy supports hierarchical terms
+  isHierarchical Boolean  @default(false)
+  /// Terms associated with this taxonomy
+  terms          Term[]
+  /// Timestamp when the record was created
+  createdAt      DateTime @default(now())
+  /// Timestamp when the record was last updated
+  updatedAt      DateTime @updatedAt
+  /// Timestamp for soft delete
+  deletedAt      DateTime?
+
+  @@index([code])
+}
+
+model Term {
+  /// Unique identifier for the term
+  id          String   @id @default(uuid())
+  /// ID of the taxonomy this term belongs to
+  taxonomyId  String
+  /// Relationship to the Taxonomy model
+  taxonomy    Taxonomy @relation(fields: [taxonomyId], references: [id])
+  /// Unique code for the term within its taxonomy
+  code        String
+  /// Human-readable label for the term
+  label       String
+  /// ID of the parent term (for hierarchical taxonomies)
+  parentId    String?
+  /// Relationship to the parent term
+  parent      Term?    @relation("TermHierarchy", fields: [parentId], references: [id])
+  /// Children terms of this term
+  children    Term[]   @relation("TermHierarchy")
+  /// Attachments of this term to entities
+  attachments TaxonomyAttachment[]
+  /// Timestamp when the record was created
+  createdAt   DateTime @default(now())
+  /// Timestamp when the record was last updated
+  updatedAt   DateTime @updatedAt
+  /// Timestamp for soft delete
+  deletedAt   DateTime?
+
+  @@unique([taxonomyId, code])
+  @@index([taxonomyId])
+  @@index([parentId])
+}
+
+model TaxonomyAttachment {
+  /// Unique identifier for the attachment
+  id           String   @id @default(uuid())
+  /// Type of entity being attached (e.g., 'product')
+  entityType   String
+  /// ID of the entity being attached
+  entityId     String
+  /// ID of the term being attached
+  termId       String
+  /// Relationship to the Term model
+  term         Term     @relation(fields: [termId], references: [id])
+  /// ID of the taxonomy the term belongs to (for easier lookup)
+  taxonomyId   String
+  /// Timestamp when the record was created
+  createdAt    DateTime @default(now())
+  /// Timestamp when the record was last updated
+  updatedAt    DateTime @updatedAt
+  /// Timestamp for soft delete
+  deletedAt    DateTime?
+
+  @@unique([entityType, entityId, termId])
+  @@index([termId])
+  @@index([entityId, entityType])
+}

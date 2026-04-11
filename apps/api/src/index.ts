@@ -7,6 +7,7 @@ import jobsRoute from "./routes/jobs.route";
 import authRoute from "./routes/auth.route";
 import usersRoute from "./routes/users.route";
 import rolesRoute from "./routes/roles.route";
+import taxonomyRoute from "./routes/taxonomy.route";
 import configRoute, { runtimeConfig } from "./routes/config.route";
 import healthRoute from "./routes/health.routes";
 import { QueueService } from "./services/queue.service";
@@ -34,6 +35,7 @@ const start = async () => {
     await app.register(authRoute, { prefix: "/api/v1" });
     await app.register(usersRoute, { prefix: "/api/v1" });
     await app.register(rolesRoute, { prefix: "/api/v1" });
+    await app.register(taxonomyRoute, { prefix: "/api/v1" });
     await app.register(productsRoute);
     await app.register(jobsRoute);
     await app.register(configRoute);

@@ -103,13 +103,78 @@ export function transformPermission(permission: any): JsonApiResource {
 }
 
 /**
- * Transforms a list of Prisma Permission models to a JSON:API response
+ * Transforms a Prisma Permission model to a JSON:API response
  */
 export function transformPermissions(permissions: any[]): JsonApiResponse {
   return {
     data: permissions.map(transformPermission),
     links: {
       self: '/api/v1/permissions',
+    },
+  };
+}
+
+/**
+ * Transforms a Prisma Taxonomy model to a JSON:API resource
+ */
+export function transformTaxonomy(taxonomy: any): JsonApiResource {
+  return {
+    type: 'taxonomy',
+    id: taxonomy.id,
+    attributes: {
+      code: taxonomy.code,
+      name: taxonomy.name,
+      is_hierarchical: taxonomy.isHierarchical,
+    },
+    links: {
+      self: `/api/v1/taxonomies/${taxonomy.code}`,
+    },
+  };
+}
+
+/**
+ * Transforms a list of Prisma Taxonomy models to a JSON:API response
+ */
+export function transformTaxonomies(taxonomies: any[]): JsonApiResponse {
+  return {
+    data: taxonomies.map(transformTaxonomy),
+    links: {
+      self: '/api/v1/taxonomies',
+    },
+  };
+}
+
+/**
+ * Transforms a Prisma Term model to a JSON:API resource
+ */
+export function transformTerm(term: any): JsonApiResource {
+  return {
+    type: 'term',
+    id: term.id,
+    attributes: {
+      code: term.code,
+      label: term.label,
+      parent_id: term.parentId,
+    },
+    relationships: term.taxonomy ? {
+      taxonomy: {
+        data: { type: 'taxonomy', id: term.taxonomy.id }
+      }
+    } : undefined,
+    links: {
+      self: `/api/v1/taxonomies/${term.taxonomy?.code || 'unknown'}/terms/${term.id}`,
+    },
+  };
+}
+
+/**
+ * Transforms a list of Prisma Term models to a JSON:API response
+ */
+export function transformTerms(terms: any[], taxonomyCode: string): JsonApiResponse {
+  return {
+    data: terms.map(transformTerm),
+    links: {
+      self: `/api/v1/taxonomies/${taxonomyCode}/terms`,
     },
   };
 }
