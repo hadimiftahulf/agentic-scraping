@@ -164,4 +164,4 @@ erDiagram
 | ID     | Platform | Status | Deskripsi                                         |
 | :----- | :------- | :----- | :------------------------------------------------ |
 | IAM-02 | Backend  | Done   | Implement JSON:API Authentication endpoints.      |
-| IAM-03 | Frontend | Todo   | Implement Login, Register, Forgot Password Pages. |
+| IAM-03 | Frontend | Done   | Implement Login, Register, Forgot Password Pages. |
