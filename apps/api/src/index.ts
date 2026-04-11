@@ -9,6 +9,7 @@ import usersRoute from "./routes/users.route";
 import rolesRoute from "./routes/roles.route";
 import taxonomyRoute from "./routes/taxonomy.route";
 import mediaRoute from "./routes/media.route";
+import notificationRoute from "./routes/notification.route";
 import multipart from "@fastify/multipart";
 import configRoute, { runtimeConfig } from "./routes/config.route";
 import healthRoute from "./routes/health.routes";
@@ -40,6 +41,7 @@ const start = async () => {
     await app.register(rolesRoute, { prefix: "/api/v1" });
     await app.register(taxonomyRoute, { prefix: "/api/v1" });
     await app.register(mediaRoute, { prefix: "/api/v1" });
+    await app.register(notificationRoute, { prefix: "/api/v1" });
     await app.register(productsRoute);
     await app.register(jobsRoute);
     await app.register(configRoute);

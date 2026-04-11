@@ -231,3 +231,47 @@ export function transformMediaAttachment(attachment: any): JsonApiResource {
     },
   };
 }
+
+/**
+ * Transforms a Prisma Notification model to a JSON:API resource
+ */
+export function transformNotification(notification: any): JsonApiResource {
+  return {
+    type: 'notifications',
+    id: notification.id,
+    attributes: {
+      title: notification.title,
+      body: notification.body,
+      status: notification.status,
+      channel: notification.channel,
+      is_read: notification.isRead,
+      template_code: notification.templateCode,
+      payload: notification.payload,
+      created_at: notification.createdAt.toISOString(),
+    },
+    relationships: {
+      user: {
+        data: { type: 'users', id: notification.userId }
+      }
+    },
+    links: {
+      self: `/api/v1/notifications/${notification.id}`,
+    },
+  };
+}
+
+/**
+ * Transforms a list of Prisma Notification models to a JSON:API response
+ */
+export function transformNotifications(
+  notifications: any[],
+  meta?: Record<string, any>
+): JsonApiResponse {
+  return {
+    data: notifications.map(transformNotification),
+    links: {
+      self: '/api/v1/notifications',
+    },
+    meta,
+  };
+}

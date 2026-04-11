@@ -25,6 +25,22 @@ enum UserStatus {
   PENDING_ACTIVATION
 }
 
+/// Notification delivery status
+enum NotificationStatus {
+  QUEUED
+  SENT
+  FAILED
+  READ
+}
+
+/// Notification delivery channel
+enum NotificationChannel {
+  EMAIL
+  WHATSAPP
+  TELEGRAM
+  IN_APP
+}
+
 model User {
   /// Unique identifier for the user
   id           String     @id @default(uuid())
@@ -40,6 +56,8 @@ model User {
   roleId       String
   /// Relationship to the Role model
   role         Role       @relation(fields: [roleId], references: [id])
+  /// Notifications belonging to this user
+  notifications Notification[]
   /// Timestamp when the user was created
   createdAt    DateTime   @default(now())
   /// Timestamp when the user was last updated
@@ -275,4 +293,37 @@ model MediaAttachment {
   @@unique([entityType, entityId, mediaId, collectionName])
   @@index([mediaId])
   @@index([entityId, entityType])
+}
+
+model Notification {
+  /// Unique identifier for the notification
+  id           String             @id @default(uuid())
+  /// ID of the user this notification belongs to
+  userId       String
+  /// Relationship to the User model
+  user         User               @relation(fields: [userId], references: [id])
+  /// Title of the notification
+  title        String
+  /// Body content of the notification
+  body         String             @db.Text
+  /// Current status of the notification
+  status       NotificationStatus @default(QUEUED)
+  /// Delivery channel used for the notification
+  channel      NotificationChannel @default(IN_APP)
+  /// Whether the notification has been read by the user
+  isRead       Boolean            @default(false)
+  /// Code of the template used for this notification
+  templateCode String?
+  /// Dynamic data used to populate the template
+  payload      Json?
+  /// Timestamp when the record was created
+  createdAt    DateTime           @default(now())
+  /// Timestamp when the record was last updated
+  updatedAt    DateTime           @updatedAt
+  /// Timestamp for soft delete
+  deletedAt    DateTime?
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt(sort: Desc)])
 }
