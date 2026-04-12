@@ -1,4 +1,5 @@
 import { UserService } from './user.service';
+import { UserRepository } from '../repositories/user.repository';
 import { LoginRequest, RegisterRequest } from '../schemas/auth.schema';
 import * as bcrypt from 'bcryptjs';
 import { FastifyInstance } from 'fastify';
@@ -7,7 +8,8 @@ export class AuthService {
   private userService: UserService;
 
   constructor(private fastify: FastifyInstance) {
-    this.userService = new UserService(fastify.db);
+    const userRepository = new UserRepository(fastify.db);
+    this.userService = new UserService(userRepository, fastify.db);
   }
 
   /**

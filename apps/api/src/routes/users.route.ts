@@ -1,29 +1,20 @@
 import { FastifyPluginAsync } from 'fastify';
 import { UserService } from '../services/user.service';
+import { UserRepository } from '../repositories/user.repository';
+import { UserController } from '../controllers/user.controller';
 import { CreateUserSchema, UpdateUserSchema } from '../schemas/user.schema';
-import { transformUser, transformUsers } from '../lib/json-api';
 
 const usersRoute: FastifyPluginAsync = async (fastify) => {
-  const userService = new UserService(fastify.db);
+  const userRepository = new UserRepository(fastify.db);
+  const userService = new UserService(userRepository, fastify.db);
+  const userController = new UserController(userService);
 
   /**
    * GET /users
    */
   fastify.get('/users', {
     onRequest: [fastify.authenticate],
-    handler: async (request, reply) => {
-      const { status, roleId, page, limit } = request.query as any;
-      const skip = (page - 1) * limit;
-      
-      const { users, totalCount } = await userService.list({
-        status,
-        roleId,
-        skip,
-        take: limit,
-      });
-
-      reply.send(transformUsers(users, { total_count: totalCount }));
-    },
+    handler: (request, reply) => userController.index(request, reply),
   });
 
   /**
@@ -31,17 +22,7 @@ const usersRoute: FastifyPluginAsync = async (fastify) => {
    */
   fastify.get('/users/:id', {
     onRequest: [fastify.authenticate],
-    handler: async (request, reply) => {
-      const { id } = request.params as any;
-      const user = await userService.findById(id);
-      
-      if (!user) {
-        reply.status(404).send({ error: 'User not found' });
-        return;
-      }
-
-      reply.send({ data: transformUser(user) });
-    },
+    handler: (request, reply) => userController.show(request, reply),
   });
 
   /**
@@ -49,14 +30,24 @@ const usersRoute: FastifyPluginAsync = async (fastify) => {
    */
   fastify.post('/users', {
     onRequest: [fastify.authenticate],
-    schema: {
-      body: CreateUserSchema,
-    },
     handler: async (request, reply) => {
-      const { data } = request.body as any;
-      const user = await userService.create(data.attributes);
-      
-      reply.status(201).send({ data: transformUser(user) });
+      try {
+        CreateUserSchema.parse(request.body);
+        return userController.store(request, reply);
+      } catch (error: any) {
+        if (error.issues) {
+          return reply.status(400).send({
+            success: false,
+            error: {
+              code: 'VALIDATION_ERROR',
+              message: 'Invalid request body',
+              details: error.issues,
+              statusCode: 400,
+            },
+          });
+        }
+        throw error;
+      }
     },
   });
 
@@ -65,16 +56,41 @@ const usersRoute: FastifyPluginAsync = async (fastify) => {
    */
   fastify.patch('/users/:id', {
     onRequest: [fastify.authenticate],
-    schema: {
-      body: UpdateUserSchema,
-    },
     handler: async (request, reply) => {
-      const { id } = request.params as any;
-      const { data } = request.body as any;
-      
-      const user = await userService.update(id, data.attributes);
-      reply.send({ data: transformUser(user) });
+      try {
+        UpdateUserSchema.parse(request.body);
+        return userController.update(request, reply);
+      } catch (error: any) {
+        if (error.issues) {
+          return reply.status(400).send({
+            success: false,
+            error: {
+              code: 'VALIDATION_ERROR',
+              message: 'Invalid request body',
+              details: error.issues,
+              statusCode: 400,
+            },
+          });
+        }
+        throw error;
+      }
     },
+  });
+
+  /**
+   * POST /users/:id/suspend
+   */
+  fastify.post('/users/:id/suspend', {
+    onRequest: [fastify.authenticate],
+    handler: (request, reply) => userController.suspend(request, reply),
+  });
+
+  /**
+   * POST /users/:id/activate
+   */
+  fastify.post('/users/:id/activate', {
+    onRequest: [fastify.authenticate],
+    handler: (request, reply) => userController.activate(request, reply),
   });
 
   /**
@@ -82,11 +98,7 @@ const usersRoute: FastifyPluginAsync = async (fastify) => {
    */
   fastify.delete('/users/:id', {
     onRequest: [fastify.authenticate],
-    handler: async (request, reply) => {
-      const { id } = request.params as any;
-      await userService.delete(id);
-      reply.status(204).send();
-    },
+    handler: (request, reply) => userController.destroy(request, reply),
   });
 };
 

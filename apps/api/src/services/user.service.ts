@@ -1,57 +1,34 @@
-import { PrismaClient, UserStatus } from '@bot/db';
+import { UserStatus } from '@bot/db';
 import { CreateUserRequest, UpdateUserRequest } from '../schemas/user.schema';
 import * as bcrypt from 'bcryptjs';
+import { IUserRepository, ListUsersParams } from '../interfaces/user-repository.interface';
+import { PrismaClient } from '@bot/db';
 
 export class UserService {
-  constructor(private db: PrismaClient) {}
+  constructor(
+    private userRepository: IUserRepository,
+    private db: PrismaClient // Still need db for role lookups or transactions if not in repo
+  ) {}
 
   /**
    * Find user by ID
    */
   async findById(id: string) {
-    return this.db.user.findUnique({
-      where: { id, deletedAt: null },
-      include: { role: true },
-    });
+    return this.userRepository.findById(id);
   }
 
   /**
    * Find user by email
    */
   async findByEmail(email: string) {
-    return this.db.user.findUnique({
-      where: { email, deletedAt: null },
-      include: { role: true },
-    });
+    return this.userRepository.findByEmail(email);
   }
 
   /**
    * List all users
    */
-  async list(params: {
-    status?: UserStatus;
-    roleId?: string;
-    skip?: number;
-    take?: number;
-  }) {
-    const where = {
-      deletedAt: null,
-      ...(params.status ? { status: params.status } : {}),
-      ...(params.roleId ? { roleId: params.roleId } : {}),
-    };
-
-    const [users, totalCount] = await Promise.all([
-      this.db.user.findMany({
-        where,
-        include: { role: true },
-        skip: params.skip,
-        take: params.take,
-        orderBy: { createdAt: 'desc' },
-      }),
-      this.db.user.count({ where }),
-    ]);
-
-    return { users, totalCount };
+  async list(params: ListUsersParams) {
+    return this.userRepository.list(params);
   }
 
   /**
@@ -60,10 +37,8 @@ export class UserService {
   async create(data: CreateUserRequest['data']['attributes']) {
     const passwordHash = await bcrypt.hash(data.password, 10);
 
-    // If role_id not provided, assign a default role or throw error
-    // For now, we'll require it or handle it in the controller
-    if (!data.role_id) {
-      // Find a default 'USER' or 'EDITOR' role
+    let roleId = data.role_id;
+    if (!roleId) {
       const defaultRole = await this.db.role.findFirst({
         where: { name: 'EDITOR' },
       });
@@ -71,18 +46,15 @@ export class UserService {
       if (!defaultRole) {
         throw new Error('Default role not found');
       }
-      data.role_id = defaultRole.id;
+      roleId = defaultRole.id;
     }
 
-    return this.db.user.create({
-      data: {
-        email: data.email,
-        fullName: data.full_name,
-        passwordHash,
-        roleId: data.role_id,
-        status: 'PENDING_ACTIVATION',
-      },
-      include: { role: true },
+    return this.userRepository.create({
+      email: data.email,
+      fullName: data.full_name,
+      passwordHash,
+      roleId: roleId!,
+      status: 'PENDING_ACTIVATION',
     });
   }
 
@@ -90,24 +62,31 @@ export class UserService {
    * Update user
    */
   async update(id: string, data: UpdateUserRequest['data']['attributes']) {
-    return this.db.user.update({
-      where: { id },
-      data: {
-        ...(data.full_name ? { fullName: data.full_name } : {}),
-        ...(data.status ? { status: data.status } : {}),
-        ...(data.role_id ? { roleId: data.role_id } : {}),
-      },
-      include: { role: true },
+    return this.userRepository.update(id, {
+      ...(data.full_name ? { fullName: data.full_name } : {}),
+      ...(data.status ? { status: data.status } : {}),
+      ...(data.role_id ? { roleId: data.role_id } : {}),
     });
+  }
+
+  /**
+   * Suspend user
+   */
+  async suspend(id: string) {
+    return this.userRepository.update(id, { status: 'SUSPENDED' });
+  }
+
+  /**
+   * Activate user
+   */
+  async activate(id: string) {
+    return this.userRepository.update(id, { status: 'ACTIVE' });
   }
 
   /**
    * Soft delete user
    */
   async delete(id: string) {
-    return this.db.user.update({
-      where: { id },
-      data: { deletedAt: new Date() },
-    });
+    return this.userRepository.delete(id);
   }
 }

@@ -5,7 +5,7 @@ export const UserStatusSchema = z.enum(['ACTIVE', 'SUSPENDED', 'PENDING_ACTIVATI
 export const UserSchema = z.object({
   id: z.string().uuid(),
   email: z.string().email(),
-  fullName: z.string(),
+  fullName: z.string().min(1).max(255),
   status: UserStatusSchema,
   roleId: z.string().uuid(),
   createdAt: z.date(),
@@ -60,8 +60,8 @@ export const CreateUserSchema = z.object({
     type: z.literal('users'),
     attributes: z.object({
       email: z.string().email(),
-      full_name: z.string().min(1),
-      password: z.string().min(8),
+      full_name: z.string().min(1).max(255),
+      password: z.string().min(8).max(100),
       role_id: z.string().uuid().optional(),
     }),
   }),
@@ -72,7 +72,7 @@ export const UpdateUserSchema = z.object({
     type: z.literal('users'),
     id: z.string().uuid(),
     attributes: z.object({
-      full_name: z.string().min(1).optional(),
+      full_name: z.string().min(1).max(255).optional(),
       status: UserStatusSchema.optional(),
       role_id: z.string().uuid().optional(),
     }),
