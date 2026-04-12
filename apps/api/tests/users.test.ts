@@ -163,6 +163,14 @@ describe('User Routes', () => {
   });
 
   describe('POST /api/v1/users/:id/suspend', () => {
+    it('should return 401 if not authenticated', async () => {
+      const response = await fastify.inject({
+        method: 'POST',
+        url: '/api/v1/users/some-id/suspend',
+      });
+      expect(response.statusCode).toBe(401);
+    });
+
     it('should suspend a user', async () => {
       const token = fastify.jwt.sign({ sub: 'admin-id' });
       
@@ -189,6 +197,14 @@ describe('User Routes', () => {
   });
 
   describe('GET /api/v1/users/:id', () => {
+    it('should return 401 if not authenticated', async () => {
+      const response = await fastify.inject({
+        method: 'GET',
+        url: '/api/v1/users/some-id',
+      });
+      expect(response.statusCode).toBe(401);
+    });
+
     it('should return a user by ID', async () => {
       const token = fastify.jwt.sign({ sub: 'user-id' });
       const mockUser = {
@@ -233,6 +249,14 @@ describe('User Routes', () => {
   });
 
   describe('PATCH /api/v1/users/:id', () => {
+    it('should return 401 if not authenticated', async () => {
+      const response = await fastify.inject({
+        method: 'PATCH',
+        url: '/api/v1/users/some-id',
+      });
+      expect(response.statusCode).toBe(401);
+    });
+
     it('should update a user', async () => {
       const token = fastify.jwt.sign({ sub: 'admin-id' });
       const userId = '11111111-1111-1111-1111-111111111111';
@@ -272,6 +296,14 @@ describe('User Routes', () => {
   });
 
   describe('POST /api/v1/users/:id/activate', () => {
+    it('should return 401 if not authenticated', async () => {
+      const response = await fastify.inject({
+        method: 'POST',
+        url: '/api/v1/users/some-id/activate',
+      });
+      expect(response.statusCode).toBe(401);
+    });
+
     it('should activate a user', async () => {
       const token = fastify.jwt.sign({ sub: 'admin-id' });
       
@@ -298,6 +330,14 @@ describe('User Routes', () => {
   });
 
   describe('DELETE /api/v1/users/:id', () => {
+    it('should return 401 if not authenticated', async () => {
+      const response = await fastify.inject({
+        method: 'DELETE',
+        url: '/api/v1/users/some-id',
+      });
+      expect(response.statusCode).toBe(401);
+    });
+
     it('should delete a user', async () => {
       const token = fastify.jwt.sign({ sub: 'admin-id' });
       
