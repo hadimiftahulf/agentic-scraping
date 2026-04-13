@@ -28,10 +28,10 @@ export default function SettingsPage() {
     mutationFn: (data: Partial<AppConfig>) => productsApi.updateConfig(data),
     onSuccess: (data) => {
       setConfig(data);
-      toast.success('Pengaturan tersimpan ✓');
+      toast.success('Settings saved ✓');
     },
     onError: (error: Error) => {
-      toast.error(`Gagal menyimpan: ${error.message}`);
+      toast.error(`Save failed: ${error.message}`);
     },
   });
 
@@ -55,7 +55,7 @@ export default function SettingsPage() {
           {/* Price Markup */}
           <div>
             <label className="block text-sm font-medium text-text-primary mb-2">
-              Markup Harga (%)
+              Price Markup (%)
             </label>
             <input
               type="range"
@@ -83,7 +83,7 @@ export default function SettingsPage() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-text-primary mb-2">
-                Harga Minimum
+                Minimum Price
               </label>
               <input
                 type="number"
@@ -95,7 +95,7 @@ export default function SettingsPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-text-primary mb-2">
-                Harga Maksimum
+                Maximum Price
               </label>
               <input
                 type="number"
@@ -110,7 +110,7 @@ export default function SettingsPage() {
           {/* Max Post Per Day */}
           <div>
             <label className="block text-sm font-medium text-text-primary mb-2">
-              Max Post Per Hari
+              Max Posts Per Day
             </label>
             <input
               type="range"
@@ -136,17 +136,17 @@ export default function SettingsPage() {
           {/* Scraper Interval */}
           <div>
             <label className="block text-sm font-medium text-text-primary mb-2">
-              Interval Scraping (menit)
+              Scraping Interval (minutes)
             </label>
             <select
               value={config.scraperIntervalMinutes ?? currentConfig.scraperIntervalMinutes}
               onChange={(e) => setConfig({ ...config, scraperIntervalMinutes: parseInt(e.target.value) })}
               className="w-full px-3 py-2 bg-bg-surface border border-border rounded-md text-text-primary"
             >
-              <option value={10}>10 menit</option>
-              <option value={20}>20 menit</option>
-              <option value={30}>30 menit</option>
-              <option value={60}>60 menit</option>
+              <option value={10}>10 minutes</option>
+              <option value={20}>20 minutes</option>
+              <option value={30}>30 minutes</option>
+              <option value={60}>60 minutes</option>
             </select>
           </div>
 
@@ -160,7 +160,7 @@ export default function SettingsPage() {
               onChange={(e) => setConfig({ ...config, blacklistKeywords: e.target.value.split(',').map(k => k.trim()).filter(Boolean) })}
               className="w-full px-3 py-2 bg-bg-surface border border-border rounded-md text-text-primary"
               rows={3}
-              placeholder="bundle, rusak, damaged, second"
+              placeholder="bundle, broken, damaged, second"
             />
           </div>
 
@@ -181,7 +181,7 @@ export default function SettingsPage() {
         {/* Auto-save indicator */}
         {updateMutation.isPending && (
           <div className="mt-4 text-sm text-text-secondary">
-            Menyimpan...
+            Saving...
           </div>
         )}
       </div>
