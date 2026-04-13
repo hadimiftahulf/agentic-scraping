@@ -1,6 +1,20 @@
+'use client';
+
+import { useState } from 'react';
 import Link from 'next/link';
+import { useAuth } from '@/hooks/useAuth';
+import { Loader2 } from 'lucide-react';
 
 export default function LoginPage() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const { login, isLoggingIn } = useAuth();
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    login({ email, password });
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900 relative overflow-hidden" style={{
       background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)'
@@ -16,14 +30,17 @@ export default function LoginPage() {
           <p className="text-indigo-200/80 font-medium tracking-wide">Sign in to your account</p>
         </div>
 
-        <form className="space-y-6">
+        <form className="space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-1">
             <label className="text-sm font-semibold text-indigo-100" htmlFor="email">Email Address</label>
             <input 
               type="email" 
               id="email" 
               required
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-indigo-300/50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={isLoggingIn}
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-indigo-300/50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 disabled:opacity-50"
               placeholder="you@example.com"
             />
           </div>
@@ -31,7 +48,7 @@ export default function LoginPage() {
           <div className="space-y-1">
             <div className="flex items-center justify-between">
               <label className="text-sm font-semibold text-indigo-100" htmlFor="password">Password</label>
-              <Link href="/forgot-password" className="text-sm font-medium text-indigo-400 hover:text-indigo-300 transition-colors">
+              <Link href="/forgot-password" disabled={isLoggingIn} className="text-sm font-medium text-indigo-400 hover:text-indigo-300 transition-colors">
                 Forgot password?
               </Link>
             </div>
@@ -39,16 +56,27 @@ export default function LoginPage() {
               type="password" 
               id="password" 
               required
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-indigo-300/50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={isLoggingIn}
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-indigo-300/50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 disabled:opacity-50"
               placeholder="••••••••"
             />
           </div>
 
           <button 
             type="submit" 
-            className="w-full py-3.5 px-4 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/25 transform transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
+            disabled={isLoggingIn}
+            className="w-full py-3.5 px-4 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/25 transform transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
           >
-            Sign In
+            {isLoggingIn ? (
+              <>
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                Signing In...
+              </>
+            ) : (
+              'Sign In'
+            )}
           </button>
         </form>
 

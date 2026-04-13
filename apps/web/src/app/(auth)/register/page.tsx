@@ -1,6 +1,21 @@
+'use client';
+
+import { useState } from 'react';
 import Link from 'next/link';
+import { useAuth } from '@/hooks/useAuth';
+import { Loader2 } from 'lucide-react';
 
 export default function RegisterPage() {
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const { register, isRegistering } = useAuth();
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    register({ full_name: fullName, email, password });
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900 relative overflow-hidden" style={{
       background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)'
@@ -15,14 +30,17 @@ export default function RegisterPage() {
           <p className="text-indigo-200/80 font-medium tracking-wide">Join us and start scraping</p>
         </div>
 
-        <form className="space-y-5">
+        <form className="space-y-5" onSubmit={handleSubmit}>
           <div className="space-y-1">
             <label className="text-sm font-semibold text-indigo-100" htmlFor="name">Full Name</label>
             <input 
               type="text" 
               id="name" 
               required
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-indigo-300/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              disabled={isRegistering}
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-indigo-300/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 disabled:opacity-50"
               placeholder="John Doe"
             />
           </div>
@@ -33,7 +51,10 @@ export default function RegisterPage() {
               type="email" 
               id="email" 
               required
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-indigo-300/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={isRegistering}
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-indigo-300/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 disabled:opacity-50"
               placeholder="you@example.com"
             />
           </div>
@@ -44,16 +65,27 @@ export default function RegisterPage() {
               type="password" 
               id="password" 
               required
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-indigo-300/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={isRegistering}
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-indigo-300/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 disabled:opacity-50"
               placeholder="••••••••"
             />
           </div>
 
           <button 
             type="submit" 
-            className="w-full mt-2 py-3.5 px-4 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-400 hover:to-pink-500 text-white font-bold rounded-xl shadow-lg shadow-purple-500/25 transform transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
+            disabled={isRegistering}
+            className="w-full mt-2 py-3.5 px-4 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-400 hover:to-pink-500 text-white font-bold rounded-xl shadow-lg shadow-purple-500/25 transform transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
           >
-            Sign Up
+            {isRegistering ? (
+              <>
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                Creating Account...
+              </>
+            ) : (
+              'Sign Up'
+            )}
           </button>
         </form>
 
