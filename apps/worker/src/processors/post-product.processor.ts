@@ -1,7 +1,7 @@
 import { Job } from 'bullmq';
 import { pino } from 'pino';
 import { BrowserManager } from '../bot/browser';
-import { FBPoster } from '../bot/fb-poster';
+import { FBPoster, ProductData } from '../bot/fb-poster';
 import { RateLimiter } from '../services/rate-limiter';
 import { CaptchaHandler } from '../bot/captcha-handler';
 import { prisma } from '@bot/db';
@@ -18,7 +18,8 @@ export interface PostProductJobResult {
 
 export async function postProductProcessor(
   job: Job<PostProductJobData>,
-  logger: pino.BaseLogger
+  logger: pino.BaseLogger,
+  token?: string
 ): Promise<PostProductJobResult> {
   const { productId } = job.data;
 
@@ -34,9 +35,10 @@ export async function postProductProcessor(
     const tomorrow8AM = new Date();
     tomorrow8AM.setDate(tomorrow8AM.getDate() + 1);
     tomorrow8AM.setHours(8, 0, 0, 0);
-    await job.moveToDelayed(Date.parse(tomorrow8AM.toISOString()), {
-      delay: Date.parse(tomorrow8AM.toISOString()) - Date.now(),
-    });
+
+    if (token) {
+      await job.moveToDelayed(Date.parse(tomorrow8AM.toISOString()), token);
+    }
     return { success: false, error: 'Daily limit reached' };
   }
 
@@ -81,7 +83,8 @@ export async function postProductProcessor(
 
     // Post product to Facebook Marketplace
     const fbPoster = new FBPoster(context, logger);
-    const result = await fbPoster.post(product);
+    // Explicitly cast to ProductData as we've verified imageLocal is present
+    const result = await fbPoster.post(product as unknown as ProductData);
 
     if (result.success) {
       // Update product status to POSTED

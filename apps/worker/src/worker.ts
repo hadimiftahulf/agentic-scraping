@@ -1,12 +1,12 @@
 import { Worker, Job } from 'bullmq';
 import { config } from '@bot/config';
-import { createLogger } from 'pino';
+import pino from 'pino';
 import { prisma } from '@bot/db';
 import { postProductProcessor } from './processors/post-product.processor';
 import { BrowserManager } from './bot/browser';
 import Redis from 'ioredis';
 
-const logger = createLogger({
+const logger = pino({
   level: config.nodeEnv === 'production' ? 'info' : 'debug',
   transport: config.nodeEnv === 'development' ? {
     target: 'pino-pretty',
@@ -20,8 +20,8 @@ const connection = new Redis(config.redisUrl, {
 
 const worker = new Worker(
   'post-product',
-  async (job: Job) => {
-    return postProductProcessor(job, logger);
+  async (job: Job, token?: string) => {
+    return postProductProcessor(job, logger, token);
   },
   {
     connection,
@@ -33,7 +33,7 @@ const worker = new Worker(
   }
 );
 
-const browserManager = new BrowserManager(logger);
+const browserManager = BrowserManager.getInstance(logger);
 
 // Graceful shutdown
 async function shutdown() {

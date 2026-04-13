@@ -67,7 +67,7 @@ export async function humanScroll(page: Page, options?: { minScrolls?: number; m
   await randomDelay(200, 500);
 }
 
-export async function humanClick(page: Page, selector: string): Promise<void> {
+export async function humanHover(page: Page, selector: string): Promise<void> {
   const element = await page.$(selector);
   if (!element) {
     throw new Error(`Element not found: ${selector}`);
@@ -82,10 +82,26 @@ export async function humanClick(page: Page, selector: string): Promise<void> {
   const x = box.x + Math.random() * box.width;
   const y = box.y + Math.random() * box.height;
 
-  await page.mouse.move(x, y);
-  await randomDelay(100, 300);
+  // Move mouse in a more human-like way
+  await page.mouse.move(x, y, { steps: 5 });
+  await randomDelay(200, 500);
+}
 
-  await element.click();
+export async function humanMoveMouseRandomly(page: Page): Promise<void> {
+  const viewport = page.viewportSize();
+  if (!viewport) return;
+
+  const targetX = Math.random() * viewport.width;
+  const targetY = Math.random() * viewport.height;
+
+  await page.mouse.move(targetX, targetY, { steps: 10 });
+  await randomDelay(100, 300);
+}
+
+export async function humanClick(page: Page, selector: string): Promise<void> {
+  await humanHover(page, selector);
+  await randomDelay(100, 300);
+  await page.click(selector);
   await randomDelay(200, 500);
 }
 
@@ -126,9 +142,48 @@ export async function createStealthContext(browser: Browser): Promise<BrowserCon
       get: () => 'Win32',
     });
 
+    // Override hardwareConcurrency
+    Object.defineProperty(navigator, 'hardwareConcurrency', {
+      get: () => 8,
+    });
+
+    // Override deviceMemory
+    (navigator as any).deviceMemory = 8;
+
     // Add Chrome object
     (window as any).chrome = {
       runtime: {},
+      loadTimes: () => {},
+      csi: () => {},
+      app: {},
+    };
+
+    // Fix Canvas Fingerprinting
+    const originalGetContext = HTMLCanvasElement.prototype.getContext;
+    (HTMLCanvasElement.prototype as any).getContext = function(type: string, attributes: any) {
+      const context = originalGetContext.call(this, type, attributes);
+      if (type === '2d') {
+        const originalGetImageData = (context as CanvasRenderingContext2D).getImageData;
+        (context as CanvasRenderingContext2D).getImageData = function(x: number, y: number, w: number, h: number) {
+          const imageData = originalGetImageData.call(this, x, y, w, h);
+          // Add slight noise to image data to prevent fingerprinting
+          for (let i = 0; i < imageData.data.length; i += 4) {
+            imageData.data[i] = imageData.data[i] + (Math.random() > 0.5 ? 1 : -1);
+          }
+          return imageData;
+        };
+      }
+      return context;
+    };
+
+    // Override WebGL parameters
+    const originalGetParameter = WebGLRenderingContext.prototype.getParameter;
+    WebGLRenderingContext.prototype.getParameter = function(parameter: number) {
+      // UNMASKED_VENDOR_WEBGL
+      if (parameter === 37445) return 'Google Inc. (NVIDIA)';
+      // UNMASKED_RENDERER_WEBGL
+      if (parameter === 37446) return 'ANGLE (NVIDIA, NVIDIA GeForce RTX 3080 Direct3D11 vs_5_0 ps_5_0, D3D11)';
+      return originalGetParameter.call(this, parameter);
     };
 
     // Override permissions

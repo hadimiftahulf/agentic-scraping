@@ -1,8 +1,8 @@
 import express from 'express';
-import { createLogger } from 'pino';
+import pino from 'pino';
 import healthRoutes from './routes/health';
 
-const logger = createLogger();
+const logger = pino();
 const app = express();
 const PORT = process.env.WORKER_HEALTH_PORT || 3002;
 

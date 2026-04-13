@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
-import { productsApi, queryKeys } from '@/lib/products.api';
+import { productsApi } from '@/lib/products.api';
+import { queryKeys } from '@/lib/query-keys';
 import { AppConfig } from '@/types';
 import { formatPrice } from '@/lib/utils';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -18,10 +19,14 @@ export default function SettingsPage() {
   const { data: currentConfig } = useQuery({
     queryKey: queryKeys.config(),
     queryFn: productsApi.getConfig,
-    onSuccess: (data) => {
-      setConfig(data);
-    },
   });
+
+  // Sync state when data is fetched
+  useEffect(() => {
+    if (currentConfig) {
+      setConfig(currentConfig);
+    }
+  }, [currentConfig]);
 
   // Update config mutation
   const updateMutation = useMutation({

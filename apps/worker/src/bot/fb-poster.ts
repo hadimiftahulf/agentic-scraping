@@ -132,7 +132,14 @@ export class FBPoster {
         throw new Error('Could not find "Create new listing" button');
       }
 
-      await humanClick(page, createButtonSelectors[createButtonSelectors.indexOf(createButtonSelectors.find(s => page.$(s)) || '')] || 'a[href*="/marketplace/create"]');
+      let activeSelector = createButtonSelectors[0];
+      for (const selector of createButtonSelectors) {
+        if (await page.$(selector)) {
+          activeSelector = selector;
+          break;
+        }
+      }
+      await humanClick(page, activeSelector);
       await randomDelay(2000, 4000);
 
       // Wait for form to appear
@@ -153,6 +160,27 @@ export class FBPoster {
     }
   }
 
+  async dismissPopups(page: Page): Promise<void> {
+    const selectors = [
+      '[aria-label="Close"]',
+      'text="Not Now"',
+      'text="Dismiss"',
+      '[role="button"]:has-text("OK")',
+      '[role="button"]:has-text("Close")',
+    ];
+
+    for (const selector of selectors) {
+      try {
+        const popup = await page.$(selector);
+        if (popup && await popup.isVisible()) {
+          await popup.click();
+          await randomDelay(500, 1000);
+        }
+      } catch (error) {
+        // Ignore errors when trying to dismiss non-existent popups
+      }
+    }
+  }
   async selectCategory(page: Page, category: string): Promise<void> {
     try {
       this.logger.info({ category }, 'Selecting category');
@@ -175,7 +203,14 @@ export class FBPoster {
       }
 
       if (categoryElement) {
-        await humanClick(page, categorySelectors[categorySelectors.indexOf(categorySelectors.find(s => page.$(s)) || '')] || 'text="Category"');
+        let activeSelector = 'text="Category"';
+        for (const selector of categorySelectors) {
+          if (await page.$(selector)) {
+            activeSelector = selector;
+            break;
+          }
+        }
+        await humanClick(page, activeSelector);
         await randomDelay(1000, 2000);
 
         // Search for category
@@ -531,7 +566,14 @@ export class FBPoster {
       await randomDelay(500, 1000);
 
       // Click submit button
-      await humanClick(page, submitSelectors[submitSelectors.indexOf(submitSelectors.find(s => page.$(s)) || '')] || 'text="Publish"');
+      let activeSelector = 'text="Publish"';
+      for (const selector of submitSelectors) {
+        if (await page.$(selector)) {
+          activeSelector = selector;
+          break;
+        }
+      }
+      await humanClick(page, activeSelector);
       await randomDelay(2000, 4000);
 
       // Wait for submission to complete

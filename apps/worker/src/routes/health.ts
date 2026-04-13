@@ -1,9 +1,9 @@
 import express from 'express';
-import { BrowserManager } from './bot/browser';
-import { createLogger } from 'pino';
+import { BrowserManager } from '../bot/browser';
+import pino from 'pino';
 
 const router = express();
-const logger = createLogger();
+const logger = pino();
 
 interface WorkerHealth {
   status: 'healthy' | 'unhealthy';

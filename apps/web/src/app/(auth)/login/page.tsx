@@ -48,7 +48,10 @@ export default function LoginPage() {
           <div className="space-y-1">
             <div className="flex items-center justify-between">
               <label className="text-sm font-semibold text-indigo-100" htmlFor="password">Password</label>
-              <Link href="/forgot-password" disabled={isLoggingIn} className="text-sm font-medium text-indigo-400 hover:text-indigo-300 transition-colors">
+              <Link 
+                href="/forgot-password" 
+                className={`text-sm font-medium text-indigo-400 hover:text-indigo-300 transition-colors ${isLoggingIn ? 'pointer-events-none opacity-50' : ''}`}
+              >
                 Forgot password?
               </Link>
             </div>

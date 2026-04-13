@@ -1,7 +1,8 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { productsApi, queryKeys } from '@/lib/products.api';
+import { productsApi } from '@/lib/products.api';
+import { queryKeys } from '@/lib/query-keys';
 import { StatsResponse } from '@/types';
 import { Package, CheckCircle, XCircle, Clock } from 'lucide-react';
 

@@ -2,29 +2,49 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Redis from 'ioredis';
 import { RateLimiter } from './rate-limiter';
 
+// Define mock outside so it can be accessed in factory
+const mockRedis = {
+  get: vi.fn(),
+  incr: vi.fn(),
+  expire: vi.fn(),
+  quit: vi.fn(),
+};
+
+vi.mock('ioredis', () => ({
+  default: vi.fn(() => mockRedis),
+}));
+
+vi.mock('pino', () => ({
+  default: vi.fn(() => ({
+    info: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    debug: vi.fn(),
+  })),
+}));
+
+vi.mock('@bot/config', () => ({
+  config: {
+    redisUrl: 'redis://localhost:6379',
+    maxPostPerDay: 8,
+    nodeEnv: 'test',
+  },
+}));
+
 describe('RateLimiter', () => {
   let rateLimiter: RateLimiter;
-  let mockRedis: any;
 
   beforeEach(() => {
-    // Mock Redis
-    mockRedis = {
-      get: vi.fn(),
-      incr: vi.fn(),
-      expire: vi.fn(),
-      quit: vi.fn(),
-    };
-
-    // Mock the Redis constructor
-    vi.mock('ioredis', () => ({
-      default: vi.fn(() => mockRedis),
-    }));
-
+    vi.clearAllMocks();
     rateLimiter = new RateLimiter();
+    // Inject mockRedis because vi.mock has closure issues
+    (rateLimiter as any).redis = mockRedis;
   });
 
   afterEach(async () => {
-    await rateLimiter.close();
+    if (rateLimiter) {
+      await rateLimiter.close();
+    }
   });
 
   describe('canPostToday', () => {

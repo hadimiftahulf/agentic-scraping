@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { queryKeys, productsApi } from '@/lib/products.api';
+import { productsApi } from '@/lib/products.api';
+import { queryKeys } from '@/lib/query-keys';
 import { ProductStatus, GetProductsParams } from '@/types';
 import { ProductCard } from '@/components/products/ProductCard';
 import { ProductSkeleton } from '@/components/products/ProductSkeleton';
@@ -29,7 +30,8 @@ export default function ProductsPage() {
   const debouncedSearch = useDebounce(search, 300);
 
   // Parse sort by
-  const [sortField, sortOrder] = sortBy.split('-') as [keyof GetProductsParams, 'asc' | 'desc'];
+  const [sortFieldRaw, sortOrder] = sortBy.split('-') as [string, 'asc' | 'desc'];
+  const sortField = (sortFieldRaw === 'price' || sortFieldRaw === 'createdAt') ? sortFieldRaw : 'createdAt';
 
   // Build query params
   const params: GetProductsParams = {

@@ -2,6 +2,11 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { CaptchaHandler } from "./captcha-handler";
 import { detectCaptcha, takeScreenshot } from "./stealth";
 
+vi.mock("./stealth", () => ({
+  detectCaptcha: vi.fn(),
+  takeScreenshot: vi.fn(),
+}));
+
 describe("CaptchaHandler", () => {
   let captchaHandler: CaptchaHandler;
   let mockLogger: any;
@@ -18,15 +23,14 @@ describe("CaptchaHandler", () => {
     mockPage = {};
 
     captchaHandler = new CaptchaHandler(mockLogger);
-
-    vi.mock("./stealth", () => ({
-      detectCaptcha: vi.fn(),
-      takeScreenshot: vi.fn(),
-    }));
+    // Mock sleep to not actually wait
+    vi.spyOn(captchaHandler as any, 'sleep').mockResolvedValue(undefined);
+    
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
-    vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
   describe("checkAndHandle", () => {
@@ -43,57 +47,46 @@ describe("CaptchaHandler", () => {
     });
 
     it("should pause when captcha is detected", async () => {
+      // 1. Initial detection: true
+      // 2. After sleep check: true (still present)
       vi.mocked(detectCaptcha).mockResolvedValue(true);
       vi.mocked(takeScreenshot).mockResolvedValue("/path/to/screenshot.png");
-
-      const originalSetTimeout = global.setTimeout;
-      global.setTimeout = vi.fn((fn) => {
-        fn();
-        return {} as any;
-      }) as any;
 
       const result = await captchaHandler.checkAndHandle(
         mockPage,
         "test-job-id",
       );
 
-      global.setTimeout = originalSetTimeout;
-
-      expect(result).toBe(false); // Returns false because captcha still present after 30 min pause
+      expect(result).toBe(false); // Fails because captcha still present after pause
       expect(takeScreenshot).toHaveBeenCalled();
       expect(mockLogger.warn).toHaveBeenCalled();
+      expect(mockLogger.error).toHaveBeenCalledWith("Captcha still present after pause, failing job");
     });
 
     it("should return true if paused but captcha resolved after pause", async () => {
+      // Setup state: already paused
       captchaHandler["isPaused"] = true;
       captchaHandler["pauseEndTime"] = Date.now() - 1000;
 
-      vi.mocked(detectCaptcha).mockResolvedValue(false);
+      // checkAndHandle first calls detectCaptcha()
+      // If it returns false, it will now check if it was paused and resolved
+      vi.mocked(detectCaptcha).mockResolvedValue(false); 
 
       const result = await captchaHandler.checkAndHandle(mockPage);
 
       expect(result).toBe(true);
       expect(captchaHandler["isPaused"]).toBe(false);
-      expect(mockLogger.info).toHaveBeenCalledWith(
-        "Captcha resolved, resuming work",
-      );
+      expect(mockLogger.info).toHaveBeenCalledWith("Captcha resolved, resuming work");
     });
 
     it("should remain paused if still within pause period", async () => {
       captchaHandler["isPaused"] = true;
       captchaHandler["pauseEndTime"] = Date.now() + 60000;
 
+      // Initially captcha is detected again
       vi.mocked(detectCaptcha).mockResolvedValue(true);
 
-      const originalSetTimeout = global.setTimeout;
-      global.setTimeout = vi.fn((fn) => {
-        fn();
-        return {} as any;
-      }) as any;
-
       const result = await captchaHandler.checkAndHandle(mockPage);
-
-      global.setTimeout = originalSetTimeout;
 
       expect(result).toBe(true);
       expect(mockLogger.info).toHaveBeenCalledWith(
@@ -102,20 +95,13 @@ describe("CaptchaHandler", () => {
       );
     });
 
-    it("should fail if captcha persists after pause", async () => {
+    it("should fail if captcha persists after pause (new cycle)", async () => {
+      // 1. Initial detection
+      // 2. After sleep check
       vi.mocked(detectCaptcha).mockResolvedValue(true);
       vi.mocked(takeScreenshot).mockResolvedValue("/path/to/screenshot.png");
 
-      // Mock sleep to not actually wait
-      const originalSetTimeout = global.setTimeout;
-      global.setTimeout = vi.fn((fn, delay) => {
-        fn();
-        return {} as any;
-      }) as any;
-
       const result = await captchaHandler.checkAndHandle(mockPage);
-
-      global.setTimeout = originalSetTimeout;
 
       expect(result).toBe(false);
       expect(mockLogger.error).toHaveBeenCalledWith(
@@ -123,19 +109,17 @@ describe("CaptchaHandler", () => {
       );
     });
 
-    it("should resume if captcha resolved after pause", async () => {
-      captchaHandler["isPaused"] = true;
-      captchaHandler["pauseEndTime"] = Date.now() - 1000; // 1 second ago
-
-      vi.mocked(detectCaptcha).mockResolvedValue(false);
+    it("should resume if captcha resolved after initial detection sleep", async () => {
+      // 1. Initial detection: true
+      // 2. After sleep check: false (resolved)
+      vi.mocked(detectCaptcha).mockResolvedValueOnce(true).mockResolvedValueOnce(false);
+      vi.mocked(takeScreenshot).mockResolvedValue("/path/to/screenshot.png");
 
       const result = await captchaHandler.checkAndHandle(mockPage);
 
       expect(result).toBe(true);
       expect(captchaHandler["isPaused"]).toBe(false);
-      expect(mockLogger.info).toHaveBeenCalledWith(
-        "Captcha resolved, resuming work",
-      );
+      expect(mockLogger.info).toHaveBeenCalledWith("Captcha resolved, resuming work");
     });
   });
 
@@ -166,16 +150,7 @@ describe("CaptchaHandler", () => {
 
   describe("pause method", () => {
     it("should pause for specified duration", async () => {
-      const originalSetTimeout = global.setTimeout;
-      global.setTimeout = vi.fn((fn, delay) => {
-        fn();
-        return {} as any;
-      }) as any;
-
       await captchaHandler.pause(5000);
-
-      global.setTimeout = originalSetTimeout;
-
       expect(captchaHandler.isWorkerPaused()).toBe(false);
     });
   });

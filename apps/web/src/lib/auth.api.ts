@@ -1,5 +1,4 @@
 import api from './api';
-import { LoginSchema, RegisterSchema } from '@/types';
 
 export interface AuthSession {
   access_token: string;

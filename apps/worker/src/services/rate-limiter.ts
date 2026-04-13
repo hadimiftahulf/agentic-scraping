@@ -1,8 +1,8 @@
 import Redis from 'ioredis';
 import { config } from '@bot/config';
-import { createLogger } from 'pino';
+import pino from 'pino';
 
-const logger = createLogger({
+const logger = pino({
   level: config.nodeEnv === 'production' ? 'info' : 'debug',
   transport: config.nodeEnv === 'development' ? {
     target: 'pino-pretty',

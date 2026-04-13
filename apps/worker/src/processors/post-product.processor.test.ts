@@ -7,10 +7,33 @@ import { RateLimiter } from '../services/rate-limiter';
 import { CaptchaHandler } from '../bot/captcha-handler';
 import { prisma } from '@bot/db';
 
+vi.mock('pino', () => ({
+  default: vi.fn(() => ({
+    info: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    debug: vi.fn(),
+  })),
+}));
+
+// Mock @bot/db properly to avoid Prisma enum error
+vi.mock('@bot/db', () => ({
+  prisma: {
+    product: {
+      findUnique: vi.fn(),
+      update: vi.fn(),
+    },
+    job: {
+      create: vi.fn(),
+    },
+  },
+}));
+
 describe('post-product.processor', () => {
   let mockJob: Job;
   let mockLogger: any;
   let mockProduct: any;
+  let mockToken: string = 'test-token';
 
   beforeEach(() => {
     // Mock dependencies
@@ -18,7 +41,8 @@ describe('post-product.processor', () => {
     vi.mock('../bot/fb-poster');
     vi.mock('../services/rate-limiter');
     vi.mock('../bot/captcha-handler');
-    vi.mock('@bot/db');
+    
+    vi.clearAllMocks();
 
     mockJob = {
       id: 'test-job-id',
@@ -55,11 +79,11 @@ describe('post-product.processor', () => {
         close: vi.fn(),
       } as any));
 
-      const result = await postProductProcessor(mockJob, mockLogger);
+      const result = await postProductProcessor(mockJob, mockLogger, mockToken);
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Daily limit reached');
-      expect(mockJob.moveToDelayed).toHaveBeenCalled();
+      expect(mockJob.moveToDelayed).toHaveBeenCalledWith(expect.any(Number), mockToken);
       expect(mockLogger.warn).toHaveBeenCalledWith(
         'Daily post limit reached, rescheduling job'
       );
@@ -91,7 +115,7 @@ describe('post-product.processor', () => {
         }),
       } as any));
 
-      const result = await postProductProcessor(mockJob, mockLogger);
+      const result = await postProductProcessor(mockJob, mockLogger, mockToken);
 
       expect(result.success).toBe(true);
     });
@@ -107,7 +131,7 @@ describe('post-product.processor', () => {
         close: vi.fn(),
       } as any));
 
-      const result = await postProductProcessor(mockJob, mockLogger);
+      const result = await postProductProcessor(mockJob, mockLogger, mockToken);
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Product not found');
@@ -126,7 +150,7 @@ describe('post-product.processor', () => {
         close: vi.fn(),
       } as any));
 
-      const result = await postProductProcessor(mockJob, mockLogger);
+      const result = await postProductProcessor(mockJob, mockLogger, mockToken);
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Product has no local image');
@@ -160,7 +184,7 @@ describe('post-product.processor', () => {
         }),
       } as any));
 
-      const result = await postProductProcessor(mockJob, mockLogger);
+      const result = await postProductProcessor(mockJob, mockLogger, mockToken);
 
       expect(result.success).toBe(true);
       expect(result.listingUrl).toBe('https://facebook.com/marketplace/item/123');
@@ -202,7 +226,7 @@ describe('post-product.processor', () => {
         }),
       } as any));
 
-      const result = await postProductProcessor(mockJob, mockLogger);
+      const result = await postProductProcessor(mockJob, mockLogger, mockToken);
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Failed to post');

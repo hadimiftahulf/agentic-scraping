@@ -7,7 +7,6 @@ export class CaptchaHandler {
   private isPaused: boolean = false;
   private pauseEndTime: number = 0;
   private readonly PAUSE_DURATION_MS = 30 * 60 * 1000; // 30 minutes
-  private readonly MAX_PAUSE_ATTEMPTS = 2;
 
   constructor(logger: pino.BaseLogger) {
     this.logger = logger;
@@ -17,7 +16,12 @@ export class CaptchaHandler {
     const isCaptcha = await detectCaptcha(page);
 
     if (!isCaptcha) {
-      return false; // No captcha detected
+      if (this.isPaused && Date.now() >= this.pauseEndTime) {
+        this.logger.info('Captcha resolved, resuming work');
+        this.isPaused = false;
+        return true;
+      }
+      return false; // No captcha detected, continue
     }
 
     this.logger.warn({ jobId }, 'Captcha detected');
@@ -34,14 +38,10 @@ export class CaptchaHandler {
         await this.sleep(60000); // Sleep for 1 minute
         return true; // Still paused
       } else {
-        // Pause period over, check again
+        // Pause period over, but captcha still present
+        this.logger.error('Captcha still present after pause, failing job');
         this.isPaused = false;
-        const stillCaptcha = await detectCaptcha(page);
-        if (stillCaptcha) {
-          this.logger.error('Captcha still present after pause, failing job');
-          return false; // Should fail the job
-        }
-        return true; // Captcha resolved
+        return false; 
       }
     }
 
@@ -52,15 +52,17 @@ export class CaptchaHandler {
     this.isPaused = true;
     this.pauseEndTime = Date.now() + this.PAUSE_DURATION_MS;
 
-    // Wait for pause duration
+    // Wait for pause duration (in production this blocks the processor)
     await this.sleep(this.PAUSE_DURATION_MS);
 
-    // Check if captcha is still present
+    // After sleep, check again
     const stillCaptcha = await detectCaptcha(page);
     if (stillCaptcha) {
       this.logger.error('Captcha still present after pause, failing job');
+      // Keep isPaused true or false? If we fail the job, we should probably allow next job to try or keep pausing.
+      // Resetting for now so next job triggers a new pause cycle if needed.
       this.isPaused = false;
-      return false; // Should fail the job
+      return false;
     }
 
     this.logger.info('Captcha resolved, resuming work');
@@ -69,7 +71,6 @@ export class CaptchaHandler {
   }
 
   private async notifyAdmin(screenshotPath: string, jobId?: string): Promise<void> {
-    // Log notification
     this.logger.warn(
       {
         jobId,
@@ -78,23 +79,6 @@ export class CaptchaHandler {
       },
       'CAPTCHA DETECTED - Worker paused. Please manually complete the captcha check.'
     );
-
-    // In a real implementation, you could send notifications via:
-    // - Telegram bot
-    // - Email
-    // - Slack webhook
-    // - SMS
-
-    // Example Telegram integration (if configured):
-    // await sendTelegramMessage(`
-    //   ⚠️ CAPTCHA DETECTED
-    //
-    //   Job ID: ${jobId || 'N/A'}
-    //   Screenshot: ${screenshotPath}
-    //
-    //   Worker is paused for ${this.PAUSE_DURATION_MS / 1000 / 60} minutes.
-    //   Please manually complete the captcha check on Facebook.
-    // `);
   }
 
   private sleep(ms: number): Promise<void> {

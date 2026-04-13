@@ -2,7 +2,8 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
-import { productsApi, queryKeys } from '@/lib/products.api';
+import { productsApi } from '@/lib/products.api';
+import { queryKeys } from '@/lib/query-keys';
 import { ProductStatus } from '@/types';
 
 interface UsePostProductOptions {

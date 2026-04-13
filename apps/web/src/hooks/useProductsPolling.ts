@@ -2,7 +2,8 @@
 
 import { useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { queryKeys, productsApi } from '@/lib/products.api';
+import { queryKeys } from '@/lib/query-keys';
+import { productsApi } from '@/lib/products.api';
 import { ProductStatus } from '@/types';
 import { toast } from 'react-hot-toast';
 

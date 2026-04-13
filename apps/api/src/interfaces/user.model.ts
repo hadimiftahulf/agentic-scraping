@@ -12,6 +12,26 @@ export class User {
   updatedAt: Date;
   deletedAt: Date | null;
 
+  /**
+   * Fields that are mass assignable
+   */
+  static readonly fillable = ['email', 'fullName', 'status', 'roleId', 'passwordHash'];
+
+  /**
+   * Fields that should be cast to specific types
+   */
+  static readonly casts = {
+    status: 'UserStatus',
+    createdAt: 'datetime',
+    updatedAt: 'datetime',
+    deletedAt: 'datetime',
+  };
+
+  /**
+   * Relationships for this model
+   */
+  static readonly relations = ['role', 'notifications'];
+
   constructor(data: PrismaUser & { role?: Role }) {
     this.id = data.id;
     this.email = data.email;
