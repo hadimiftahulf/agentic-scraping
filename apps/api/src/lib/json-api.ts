@@ -1,3 +1,5 @@
+import { User } from '../interfaces/user.model';
+
 export interface JsonApiResource {
   type: string;
   id: string;
@@ -14,19 +16,13 @@ export interface JsonApiResponse<T = JsonApiResource | JsonApiResource[]> {
 }
 
 /**
- * Transforms a Prisma User model to a JSON:API resource
+ * Transforms a User model to a JSON:API resource
  */
-export function transformUser(user: any): JsonApiResource {
+export function transformUser(user: User): JsonApiResource {
   return {
     type: 'users',
     id: user.id,
-    attributes: {
-      email: user.email,
-      full_name: user.fullName,
-      status: user.status,
-      created_at: user.createdAt.toISOString(),
-      updated_at: user.updatedAt.toISOString(),
-    },
+    attributes: user.toAttributes(),
     relationships: user.role ? {
       role: {
         data: { type: 'roles', id: user.role.id }
@@ -39,9 +35,9 @@ export function transformUser(user: any): JsonApiResource {
 }
 
 /**
- * Transforms a list of Prisma User models to a JSON:API response
+ * Transforms a list of User models to a JSON:API response
  */
-export function transformUsers(users: any[], meta?: Record<string, any>): JsonApiResponse {
+export function transformUsers(users: User[], meta?: Record<string, any>): JsonApiResponse {
   return {
     data: users.map(transformUser),
     links: {

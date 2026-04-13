@@ -1,4 +1,5 @@
-import { User, UserStatus } from '@bot/db';
+import { UserStatus } from '@bot/db';
+import { User } from './user.model';
 
 export interface ListUsersParams {
   status?: UserStatus;
