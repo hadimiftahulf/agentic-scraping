@@ -7,7 +7,7 @@ import { ExternalLink, Clock } from 'lucide-react';
 interface ProductCardProps {
   product: Product;
   onPost?: (id: string) => void;
-  onView?: (id: string) => void;
+  onView?: (product: Product) => void;
   isPosting?: boolean;
   isSelectable?: boolean;
   isSelected?: boolean;
@@ -31,7 +31,7 @@ export function ProductCard({
         card p-4 hover:border-accent/50 transition-all duration-200 relative group
         ${isSelected ? 'ring-2 ring-accent' : ''}
       `}
-      onClick={() => onView?.(product.id)}
+      onClick={() => onView?.(product)}
     >
       {/* Select Checkbox */}
       {isSelectable && (

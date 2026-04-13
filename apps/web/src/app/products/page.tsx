@@ -9,9 +9,12 @@ import { ProductSkeleton } from '@/components/products/ProductSkeleton';
 import { FilterBar } from '@/components/products/FilterBar';
 import { Pagination } from '@/components/products/Pagination';
 import { EmptyState } from '@/components/products/EmptyState';
+import { ProductDrawer } from '@/components/products/ProductDrawer';
 import { usePostProduct } from '@/hooks/usePostProduct';
 import { useProductsPolling } from '@/hooks/useProductsPolling';
+import { useProductJobs } from '@/hooks/useProductJobs';
 import { useDebounce } from '@/hooks/useDebounce';
+import { Product } from '@/types';
 
 export default function ProductsPage() {
   const [status, setStatus] = useState<ProductStatus | 'ALL'>('ALL');
@@ -19,6 +22,8 @@ export default function ProductsPage() {
   const [sortBy, setSortBy] = useState('createdAt-desc');
   const [page, setPage] = useState(1);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   // Debounce search
   const debouncedSearch = useDebounce(search, 300);
@@ -38,6 +43,9 @@ export default function ProductsPage() {
 
   // Fetch products with polling
   const { data, isLoading, error, refetch } = useProductsPolling(params);
+
+  // Fetch jobs for selected product
+  const { data: jobs = [] } = useProductJobs(selectedProduct?.id || null);
 
   // Post product mutation with optimistic UI
   const postProduct = usePostProduct();
@@ -62,9 +70,15 @@ export default function ProductsPage() {
     setSelectedIds(new Set());
   };
 
-  const handleView = (id: string) => {
-    // TODO: Open product detail modal
-    console.log('View product:', id);
+  const handleView = (product: Product) => {
+    setSelectedProduct(product);
+    setIsDrawerOpen(true);
+  };
+
+  const handleCloseDrawer = () => {
+    setIsDrawerOpen(false);
+    // Delay clearing selected product to allow for closing animation
+    setTimeout(() => setSelectedProduct(null), 300);
   };
 
   // Check if polling should be enabled
@@ -148,6 +162,14 @@ export default function ProductsPage() {
                 onPageChange={setPage}
               />
             )}
+
+            {/* Product Detail Drawer */}
+            <ProductDrawer
+              product={selectedProduct}
+              jobs={jobs}
+              isOpen={isDrawerOpen}
+              onClose={handleCloseDrawer}
+            />
           </>
         )}
       </div>
